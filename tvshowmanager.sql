@@ -32,8 +32,7 @@ CREATE TABLE IF NOT EXISTS `show` (
 CREATE TABLE IF NOT EXISTS `user` (
   `user_id` int(11) NOT NULL,
   `name` varchar(64) NOT NULL,
-  `password` varchar(64) NOT NULL,
-  `token` varchar(32) DEFAULT NULL
+  `password` varchar(64) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `user_shows` (
@@ -43,6 +42,11 @@ CREATE TABLE IF NOT EXISTS `user_shows` (
   `last_episode` int(11) NOT NULL DEFAULT '1',
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
   `favourite` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `user_token` (
+  `user_id` int(11) NOT NULL,
+  `token` varchar(32) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
@@ -62,12 +66,18 @@ ALTER TABLE `user_shows`
   ADD PRIMARY KEY (`user_id`,`show_id`) USING BTREE,
   ADD KEY `show_id` (`show_id`);
 
+ALTER TABLE `user_token`
+  ADD PRIMARY KEY (`user_id`,`token`);
+
 
 ALTER TABLE `user`
   MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `user_shows`
   ADD CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `user_token`
+  ADD CONSTRAINT `user_token_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

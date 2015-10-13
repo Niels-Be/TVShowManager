@@ -220,10 +220,9 @@ function login($user, $pw, $stay = false) {
 		$_SESSION['username'] = $row['name'];
 		if($stay) {
 			$token = md5("$id ## $user " + rand() + date('c'));
-			$db->query("UPDATE `user` SET token = '$token' WHERE `user_id` = $id") or die($db->error);
+			$db->query("INSERT INTO `user_token` VALUES ($id, '$token')") or die($db->error);
 			setcookie("usertoken", $token, time()+60*60*24*30, "", "", false, true);
 		} else {
-			$db->query("UPDATE `user` SET token = NULL WHERE `user_id` = $id") or die($db->error);
 			setcookie("usertoken", NULL);
 		}
 		
@@ -234,7 +233,7 @@ function login($user, $pw, $stay = false) {
 function login2($token) {
 	global $db;
 	$token = $db->escape_string($token);
-	$res = $db->query("SELECT user_id, name FROM `user` WHERE `token` = '$token'") or die($db->error);
+	$res = $db->query("SELECT user_id, name FROM `user` JOIN `user_token` USING(user_id) WHERE `token` = '$token'") or die($db->error);
 	if($res->num_rows == 1) {
 		$row = $res->fetch_assoc();
 		$_SESSION['userid'] = $row['user_id'];
@@ -245,8 +244,13 @@ function login2($token) {
 }
 
 function logout() {
+    global $db;
+    $id = $_SESSION['userid'];
+    if($id)
+        $db->query("DELETE FROM `user_token` WHERE `user_id` = $id");
 	unset($_SESSION['userid']);
 	unset($_SESSION['username']);
+    setcookie("usertoken", NULL);
 }
 
 function register($user, $pw) {
