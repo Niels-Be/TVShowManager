@@ -1,9 +1,9 @@
 Tv Show Manager
 ===============
 
-This is a nice and simple Web UI that allows you the keep track of your TV shows. 
-It is usefull if you are watching multiple shows at the same time and can not remember at which episode you stopped watching.
-Also it shows you if a new episode is available or when the next comes online.
+This is a nice and simple Web UI that allows you to keep track of your TV shows. 
+It is useful if you are watching multiple shows at the same time and cannot remember at which episode you stopped watching.
+Also, it shows you if a new episode is available or when the next comes online.
 
 ![Screenshot](http://i.imgur.com/NOQi8dO.png)
 
@@ -12,7 +12,7 @@ Also it shows you if a new episode is available or when the next comes online.
 ## Usage
 You can either use my site at http://waeco-soft.com/TvShowManager or setup your own homepage.
 
-When using my site you can try it out without creating an account. But keep in mind your shows wont be saved.
+When using my site you can try it out without creating an account. But keep in mind your shows won't be saved.
 
 ## Installation
 Clone this repository
@@ -21,7 +21,7 @@ Clone this repository
 1. Install a MySQL server
 2. Create a database `tvshowmanager`
 3. Create a user `tvshowmanager` and set a password
-4. Import tvshowmanager.sql into that database
+4. Import `tvshowmanager.sql` into that database
 
 #### Webserver
 1. Install a Webserver and setup PHP
