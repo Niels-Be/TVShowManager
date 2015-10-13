@@ -163,11 +163,11 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 				this.image = data.image;
 				this.name = data.name;
 				this.show_status = data.status == 'Canceled/Ended' ? 'Ended' : data.status;
-				if(!data.enabled && !(this.show_status == 'Ended' || this.show_status == 'Canceled'))
+				if((data.enabled != null && !data.enabled) && !(this.show_status == 'Ended' || this.show_status == 'Canceled'))
 					this.status = 'Disabled';
 				
-				this.last_season = data.last_season;
-				this.last_episode = data.last_episode;
+				this.last_season = data.last_season || 1;
+				this.last_episode = data.last_episode || 1;
 				this.favourite = data.favourite;
 				
 				if(this.status == 'Disabled') return;
@@ -200,7 +200,7 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 				}
 			}
 			
-			if(data && !data.enabled && !(this.status == 'Ended' || this.status == 'Canceled')) {
+			if(data && (data.enabled != null && !data.enabled) && !(this.status == 'Ended' || this.status == 'Canceled')) {
 				this.status = 'Disabled';
 				this.next_ep = '';
 			}
