@@ -1,0 +1,10 @@
+<?php
+
+$mysql_host="localhost";
+$mysql_db  ="tvshowmanager";
+$mysql_user="root";
+$mysql_pw  ="";
+
+$apikey = "";
+
+?>
