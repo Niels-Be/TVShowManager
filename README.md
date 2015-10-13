@@ -2,7 +2,7 @@ Tv Show Manager
 ===============
 
 This is a nice and simple Web UI that allows you the keep track of your TV shows. 
-It is usefull if you are watching multiple shows at the same time and can not remember at witch episode you stoped watching.
+It is usefull if you are watching multiple shows at the same time and can not remember at which episode you stopped watching.
 Also it shows you if a new episode is available or when the next comes online.
 
 ![Screenshot](http://i.imgur.com/NOQi8dO.png)
@@ -12,6 +12,7 @@ Also it shows you if a new episode is available or when the next comes online.
 ## Usage
 You can either use my site at http://waeco-soft.com/TvShowManager or setup your own homepage.
 
+When using my site you can try it out without creating an account. But keep in mind your shows wont be saved.
 
 ## Installation
 Clone this repository
