@@ -46,7 +46,7 @@ if(isset($_SESSION['userid'])) {
 		<div class="panel panel-default">
 			<nav class="navbar navbar-default" role="navigation">
 			<div class="navbar-header">
-				<span class="navbar-brand">TV Show Manager V2</span>
+				<span class="navbar-brand">TV Show Manager</span>
 			</div>
 			
 			<div class="collapse navbar-collapse">

@@ -212,11 +212,12 @@ function login($user, $pw, $stay = false) {
 	global $db;
 	$user = $db->escape_string($user);
 	$pw = $db->escape_string($pw);
-	$res = $db->query("SELECT user_id FROM `user` WHERE `name` = '$user' AND `password` = PASSWORD('$pw')") or die($db->error);
+	$res = $db->query("SELECT user_id,name FROM `user` WHERE `name` = '$user' AND `password` = PASSWORD('$pw')") or die($db->error);
 	if($res->num_rows == 1) {
-		$id = $res->fetch_assoc()['user_id'];
+		$row = $res->fetch_assoc();
+        $id = $row['user_id'];
 		$_SESSION['userid'] = $id;
-		$_SESSION['username'] = $user;
+		$_SESSION['username'] = $row['name'];
 		if($stay) {
 			$token = md5("$id ## $user " + rand() + date('c'));
 			$db->query("UPDATE `user` SET token = '$token' WHERE `user_id` = $id") or die($db->error);
