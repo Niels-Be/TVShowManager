@@ -12,7 +12,7 @@ Also, it shows you if a new episode is available or when the next comes online.
 ## Usage
 You can either use my site at http://waeco-soft.com/TvShowManager or setup your own homepage.
 
-When using my site you can try it out without creating an account. But keep in mind your shows won't be saved.
+When using my site you can try it out without creating an account. But keep in mind your shows won't be saved unless you create an account.
 
 ## Installation
 Clone this repository
