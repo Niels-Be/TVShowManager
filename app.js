@@ -193,10 +193,10 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 				var nextdate = new Date(next[0], next[1]-1, next[2]);
 				if(nextdate <= now) {
 					this.status = 'Available';
-					this.next_ep = nextep.title;
+					this.next_ep = nextep.title + ' (' + nextep.airdate + ')';
 				} else {
 					this.status = 'Unavailable';
-					this.next_ep = nextep.airdate + ' (' + nextep.title + ')';
+					this.next_ep = nextep.title + ' (' + nextep.airdate + ')';
 				}
 			}
 			
