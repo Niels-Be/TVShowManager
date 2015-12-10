@@ -75,6 +75,7 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 			case 'Ended':
 			case 'Canceled':
 				return 'active';
+            case 'Undetermined':
 			case 'Error':
 				return 'warning';
 			default:
@@ -181,7 +182,7 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 					this.status = 'Unavailable';
 					this.next_ep = this.show_status;
 				}
-			} else {
+			} else if(this.seasons.length >= this.last_season) {
 				var nextep = {};
 				if(this.last_episode < this.seasons[this.last_season].length)
 					nextep = this.seasons[this.last_season][this.last_episode];
@@ -191,14 +192,18 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 				var now = new Date();
 				var next = nextep.airdate.split('-');
 				var nextdate = new Date(next[0], next[1]-1, next[2]);
-				if(nextdate <= now) {
+                if(nextdate.getTime() < 0) {
+                    this.status = 'Undetermined';
+                } else if(nextdate <= now) {
 					this.status = 'Available';
-					this.next_ep = nextep.title + ' (' + nextep.airdate + ')';
-				} else {
+                } else {
 					this.status = 'Unavailable';
-					this.next_ep = nextep.title + ' (' + nextep.airdate + ')';
-				}
-			}
+                }
+                this.next_ep = nextep.title + ' (' + nextep.airdate + ')';
+			} else {
+                this.status = 'Error';
+                console.error('Last season is greater then total seasons', this);
+            }
 			
 			if(data && (data.enabled != null && !data.enabled) && !(this.status == 'Ended' || this.status == 'Canceled')) {
 				this.status = 'Disabled';

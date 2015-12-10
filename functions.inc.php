@@ -90,12 +90,16 @@ function getShow($sid, $force, $quiet) {
     #Inster Episodes
 	if(isset($episodes['EpisodeName'])) {
 		$episode = $episodes;
-		$stmEp->bind_param('iiiss', $sid, $episode['SeasonNumber'], $episode['EpisodeNumber'], $episode['EpisodeName'], empty($episode['FirstAired']) ? '0000-00-00' : $episode['FirstAired']);
+		$episode['FirstAired'] = empty($episode['FirstAired']) ? '0000-00-00' : $episode['FirstAired'];
+        $episode['EpisodeName'] = empty($episode['EpisodeName']) ? 'TBA' : $episode['EpisodeName'];
+        $stmEp->bind_param('iiiss', $sid, $episode['SeasonNumber'], $episode['EpisodeNumber'], $episode['EpisodeName'], $episode['FirstAired']);
 		$stmEp->execute();
     } else {
 		foreach($episodes as $episode) {
-           $stmEp->bind_param('iiiss', $sid, $episode['SeasonNumber'], $episode['EpisodeNumber'], $episode['EpisodeName'], empty($episode['FirstAired']) ? '0000-00-00' : $episode['FirstAired']);
-	    	$stmEp->execute();
+	        $episode['FirstAired'] = empty($episode['FirstAired']) ? '0000-00-00' : $episode['FirstAired'];
+            $episode['EpisodeName'] = empty($episode['EpisodeName']) ? 'TBA' : $episode['EpisodeName'];
+            $stmEp->bind_param('iiiss', $sid, $episode['SeasonNumber'], $episode['EpisodeNumber'], $episode['EpisodeName'], $episode['FirstAired']);
+            $stmEp->execute();
 		}
 	}
 	
