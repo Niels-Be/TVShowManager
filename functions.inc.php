@@ -234,14 +234,15 @@ function login($user, $pw, $stay = false) {
 	} else
 		return array('msg' => 'Username or Password invalid');
 }
-function login2($token) {
+function login2($usertoken) {
 	global $db;
-	$token = $db->escape_string($token);
+	$token = $db->escape_string($usertoken);
 	$res = $db->query("SELECT user_id, name FROM `user` JOIN `user_token` USING(user_id) WHERE `token` = '$token'") or die($db->error);
 	if($res->num_rows == 1) {
 		$row = $res->fetch_assoc();
 		$_SESSION['userid'] = $row['user_id'];
 		$_SESSION['username'] = $row['name'];
+        setcookie("usertoken", $usertoken, time()+60*60*24*30, "", "", false, true);
 		return array('msg' => 'OK');
 	} else
 		return array('msg' => 'Session expiered');
