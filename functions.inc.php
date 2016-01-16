@@ -120,7 +120,7 @@ function getUserShows() {
 					s.*, 
 					us.last_season, us.last_episode, us.enabled, us.favourite
 				FROM user_shows as us
-				LEFT JOIN `show` as s
+				JOIN `show` as s
 				USING(show_id)
 				WHERE us.user_id = ? AND 0 = ?
 			');
