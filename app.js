@@ -297,14 +297,14 @@ app.controller('GlobalController', [
 							old_search = name;
 							if (Array.isArray(data.show)){
 								$scope.search.results = data.show;
-								old_data = data.show; 
+								old_data = data.show;
 							}
 							else
 								$scope.search.results = old_data;
 							$scope.search.open = true;
 						});
 				}
-			},500).error;
+			},500);
 		};
 
 		$scope.show_img = function (data) {
