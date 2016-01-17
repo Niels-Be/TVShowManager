@@ -8,7 +8,6 @@ app.factory('ShowQuery', ['$http', '$timeout', function($http, $timeout) {
 		this.search = function(name) {
 				return $http.get("query.php", {params: {search: name}});
 		};
-
 		this.showinfo = function(id, force) {
 			if(force)
 				return $http.get("query.php", {params: {show: id, force: true}});
@@ -296,11 +295,16 @@ app.controller('GlobalController', [
 						.success(function(data) {
 							// console.log("Seach open", data.show[1], data.show[0].img);
 							old_search = name;
-							$scope.search.results = Array.isArray(data.show) ? data.show : [data.show];
+							if (Array.isArray(data.show)){
+								$scope.search.results = data.show;
+								old_data = data.show; 
+							}
+							else
+								$scope.search.results = old_data;
 							$scope.search.open = true;
 						});
 				}
-			},500);
+			},500).error;
 		};
 
 		$scope.show_img = function (data) {
