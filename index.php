@@ -6,7 +6,7 @@ require('config.inc.php');
 require('functions.inc.php');
 session_start();
 
-$db = new mysqli($mysql_host, $mysql_user, $mysql_pw, $mysql_db);
+@$db = new mysqli($mysql_host, $mysql_user, $mysql_pw, $mysql_db) or die($db->error);
 
 $user = 0;
 $name = '';
@@ -26,17 +26,17 @@ if(isset($_SESSION['userid'])) {
 <html ng-app="TVShowManager">
 <head>
 	<title>TV Show Manager</title>
-	
+
 	<meta charset="utf-8">
-	
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
 	<link rel="stylesheet" href="style.css">
 	<script type="text/javascript">
 		var userid, username, usershows = [];
 		<?php if($user != 0) {
-			echo "userid = $user;"; 
-			echo "username = '$name';"; 
+			echo "userid = $user;";
+			echo "username = '$name';";
 			echo 'usershows = '.json_encode(getUserShows()).';';
 		} ?>
 	</script>
@@ -48,7 +48,7 @@ if(isset($_SESSION['userid'])) {
 			<div class="navbar-header">
 				<span class="navbar-brand">TV Show Manager</span>
 			</div>
-			
+
 			<div class="collapse navbar-collapse">
 				<ul class="nav navbar-nav navbar-right">
 					<li ng-if="!user.loggedin">
@@ -90,20 +90,20 @@ if(isset($_SESSION['userid'])) {
 					<li><a class="navbar-brand" style="float: none; padding-top: 15px;">{{user.name}}</a></li>
 				</ul>
 			</div>
-				
+
 			</nav>
-		
+
 			<div class="panel-body">
                 <?php if(isset($res['msg']) && $res['msg'] != 'OK') echo '<div class="alert alert-danger">'.$res['msg'].'</div>'; ?>
 				<div class="navbar navbar-default">
 					<form class="navbar-form navbar-left" role="search">
-						<div class="form-group" dropdown is-open="search.open" ng-class="{'has-error': new_error}">
+						<div class="form-group" uib-dropdown is-open="search.open" ng-class="{'has-error': new_error}">
 							<input type="text" ng-model="new_name" ng-change="show_search(new_name)" ng-focus="show_search(new_name)" class="form-control" placeholder="Add new TV Show">
-							<div class="dropdown-menu">
+							<div class="dropdown-menu" ng-init="search.results={name:'jorge', year:'2'}">
 								<table class="table table-default">
 								<tr><th>Name</th><th>Year</th></tr>
 								<tr ng-repeat="show in search.results | limitTo:5">
-									<td><a ng-click="show_add(show.imdb_id, show.name)" href="#">{{show.name}}</a></td>
+									<td><a popover-placement="right" uib-popover-template="'popoverImgTemplate.html'" popover-title="{{show.name}}" popover-trigger="mouseenter" ng-click="show_add(show.imdb_id, show.name)" href="#">{{show.name}}</a></td>
                                     <!-- TODO: Add popup for image on mouse over -->
 									<td>{{show.year}}</td>
 								</tr>
@@ -113,7 +113,11 @@ if(isset($_SESSION['userid'])) {
 						<button ng-click="show_add()" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> Add</button>
 					</form>
 				</div>
-			
+
+				<script id="popoverImgTemplate.html" type="text/ng-template">
+				      <img src={{show.img}} class="img-responsive">
+	    		</script>
+
 				<div class="panel panel-default">
 					<table class="table table-default" style="table-layout: fixed">
 						<tr>
@@ -123,12 +127,12 @@ if(isset($_SESSION['userid'])) {
 								</a>
 							</th>
 							<th style="width: 30%">
-								<a style="color: #333;" href="#" ng-click="show_predicate='name';show_reverse=!show_reverse;">Name</a> 
+								<a style="color: #333;" href="#" ng-click="show_predicate='name';show_reverse=!show_reverse;">Name</a>
 								<small ng-if="show_predicate=='name'" class="glyphicon glyphicon-chevron-{{show_reverse?'down':'up'}}"></small>
 							</th>
 							<th style="width: 15%">Last Episode</th>
 							<th style="width: 15%">
-								<a style="color: #333;" href="#" ng-click="show_predicate='status';show_reverse=!show_reverse;">Status</a> 
+								<a style="color: #333;" href="#" ng-click="show_predicate='status';show_reverse=!show_reverse;">Status</a>
 								<small ng-if="show_predicate=='status'" class="glyphicon glyphicon-chevron-{{show_reverse?'down':'up'}}"></small>
 							</th>
 							<th style="width: 35%">Next Episode</th>
@@ -156,21 +160,21 @@ if(isset($_SESSION['userid'])) {
 					</table>
 				</div>
 			</div>
-			
+
 			<div class="panel-footer">
     			<div style="position: absolute;">&copy; WaeCo-Soft 2015</div>
     		    <div style="text-align: center;">Powerd by <a href="http://thetvdb.com/">TheTVDB.com</a></div>
 			</div>
 		</div>
 	</div>
-	
-	
-	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.js"></script>
-	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular-route.js"></script>
-	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular-resource.min.js"></script>
-	<script src="app.js"></script>	
-	
+
+
+	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
+	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.js"></script>
+	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-resource.min.js"></script>
+	<script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-1.0.3.js"></script>
+	<script src="app.js"></script>
+
 	<!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>  -->
-	<script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.12.1.js"></script>
 </body>
 </html>
