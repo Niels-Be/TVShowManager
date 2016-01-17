@@ -306,11 +306,7 @@ app.controller('GlobalController', [
 				}
 			},500);
 		};
-
-		$scope.show_img = function (data) {
-			console.log(data);
-		};
-
+		
 		$scope.show_add = function(sid, name) {
 			var id = 0;
 			if(sid)
