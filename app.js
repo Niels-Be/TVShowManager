@@ -240,8 +240,8 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 }]);
 
 app.controller('GlobalController', [
-	'$scope', 'ShowQuery', '$timeout', '$interval', 'TVShow',
-	function($scope, ShowQuery, $timeout, $interval, TVShow, $uibmodal)
+	'$scope', 'ShowQuery', '$timeout', '$interval', 'TVShow','$uibModal', 
+	function($scope, ShowQuery, $timeout, $interval, TVShow, $modal)
 	{
 		$scope.show_predicate = 'favourite';
 		$scope.show_reverse = true;
@@ -293,7 +293,7 @@ app.controller('GlobalController', [
 					$scope.search.results = [];
 					ShowQuery.search(name)
 						.success(function(data) {
-							// console.log("Seach open", data.show[1], data.show[0].img);
+							console.log("Seach open", data.show[1], data.show[0].img);
 							old_search = name;
 							if (Array.isArray(data.show)){
 								$scope.search.results = data.show;
@@ -399,7 +399,7 @@ app.controller('GlobalController', [
 }]);
 
 app.controller('LoginModal', [
-	'$scope', 'ShowQuery', '$modalInstance',
+	'$scope', 'ShowQuery', '$uibModalInstance',
 	function($scope, ShowQuery, $modalInstance)
 	{
 		$scope.error = null;

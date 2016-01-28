@@ -103,7 +103,7 @@ if(isset($_SESSION['userid'])) {
 								<table class="table table-default">
 								<tr><th>Name</th><th>Year</th></tr>
 								<tr ng-repeat="show in search.results | limitTo:5">
-									<td><a popover-placement="right" uib-popover-template="'popoverImgTemplate.html'" popover-title="{{show.name}}" popover-trigger="mouseenter" ng-click="show_add(show.imdb_id, show.name)" href="#">{{show.name}}</a></td>
+									<td><a ng-click="show_add(show.imdb_id, show.name)" href="#">{{show.name}}</a></td>
                                     <!-- TODO: Add popup for image on mouse over -->
 									<td>{{show.year}}</td>
 								</tr>
@@ -113,10 +113,6 @@ if(isset($_SESSION['userid'])) {
 						<button ng-click="show_add()" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> Add</button>
 					</form>
 				</div>
-
-				<script id="popoverImgTemplate.html" type="text/ng-template">
-				      <img src={{show.img}} class="img-responsive">
-	    		</script>
 
 				<div class="panel panel-default">
 					<table class="table table-default" style="table-layout: fixed">
@@ -169,10 +165,10 @@ if(isset($_SESSION['userid'])) {
 	</div>
 
 
-	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
-	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.js"></script>
-	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-resource.min.js"></script>
-	<script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-1.0.3.js"></script>
+	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.js"></script>
+	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-route.js"></script>
+	<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular-resource.min.js"></script>
+	<script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-1.1.1.js"></script>
 	<script src="app.js"></script>
 
 	<!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>  -->
