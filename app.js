@@ -293,7 +293,7 @@ app.controller('GlobalController', [
 					$scope.search.results = [];
 					ShowQuery.search(name)
 						.success(function(data) {
-							console.log("Seach open", data.show[1], data.show[0].img);
+							console.log("Seach open", data.show);
 							old_search = name;
 							if (Array.isArray(data.show)){
 								$scope.search.results = data.show;
