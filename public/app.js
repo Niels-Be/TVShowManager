@@ -192,8 +192,8 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 				if((data.enabled != null && !data.enabled) && !(this.show_status == 'Ended' || this.show_status == 'Canceled'))
 					this.status = 'Disabled';
 				
-				this.last_season = data.last_season || 1;
-				this.last_episode = data.last_episode || 1;
+				this.last_season = data.last_season || 0;
+				this.last_episode = data.last_episode || 0;
 				this.favourite = data.favourite;
 				
 				if(this.status == 'Disabled') return;
