@@ -193,7 +193,7 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 
 				this.last_season = data.last_season || 0;
 				this.last_episode = data.last_episode || 0;
-				this.favourite = data.favourite;
+				this.favourite = !!data.favourite;
 
 				if(this.status == 'Disabled') return;
 			}
