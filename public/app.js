@@ -91,18 +91,32 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
             return this.status == 'Disabled';
         });
         this.__defineGetter__('first', function() {
-            return this.last_episode == 1 && this.last_season == 1;
+            return this.last_season == 0;
         });
 		this.__defineGetter__('ended', function() { 
 			return this.status == 'Ended' || this.status == 'Canceled';
 		});
-		this.__defineGetter__('last_ep', function() { 
-			return 'S' + pad(this.last_season, 2) + ' E' + pad(this.last_episode, 2); 
+		this.__defineGetter__('next_ep', function() { 
+            var next = this.getNext();
+            if(next)
+    			return 'S' + pad(next.season, 2) + ' E' + pad(next.episode, 2); 
+            if(this.ended)
+                return 'End';
+            //Fallback
+    		return 'S' + pad(this.last_season, 2) + ' E' + pad(this.last_episode, 2) + "+"; 
+            //return 'Next';          
 		});
-		this.next_ep = '';
+        this.__defineGetter__('next_ep_name', function() {
+            var next = this.getNext();
+            return next ? next.title : this.show_status;
+        });
+        this.__defineGetter__('next_ep_date', function() {
+            var next = this.getNext();
+            return next ? next.airdate : '';
+        });
 		
-		this.last_season = 1;
-		this.last_episode = 1;
+		this.last_season = 0;
+		this.last_episode = 0;
 		this.favourite = false;
 		
 		this.loading = false;
@@ -115,7 +129,7 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 		this.inc = function() {
 			if(this.loading) return;
 			this.last_episode++;
-			if(this.last_episode > this.seasons[this.last_season].length) {
+			if(this.last_season == 0 || this.last_episode > this.seasons[this.last_season].length) {
 				if(this.last_season < this.seasons.length) {
 					this.last_season++;
 					this.last_episode = 1;
@@ -130,11 +144,14 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 			if(this.loading) return;
 			this.last_episode--;
 			if(this.last_episode == 0) {
-				this.last_episode = 1;
+                this.last_episode = 1;
 				if(this.last_season > 1) {
-					this.last_season--;
+                    this.last_season--;
 					this.last_episode = this.seasons[this.last_season].length;
-				}
+				} else {
+                    this.last_episode = 0;
+                    this.last_season = 0; 
+                }
 			}
 			this.update_status();
 			ShowQuery.user_show_update(this);
@@ -143,16 +160,24 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 		this.activate = function() {
 			if(this.status != 'Disabled') {
 				this.status = 'Disabled';
-				this.next_ep = '';
 			} else
 				this.update_status();
 			ShowQuery.user_show_update(this);
+            console.log(this);
 		};
 		
 		this.setFavourite = function() {
 			this.favourite = !this.favourite;
 			ShowQuery.user_show_update(this);
 		}
+
+        this.getNext = function() {
+            if(this.last_season > 0 && this.seasons[this.last_season].length > this.last_episode)
+                return this.seasons[this.last_season][this.last_episode];
+            if(this.seasons.length >= this.last_season + 1)
+                return this.seasons[this.last_season + 1][0];
+            return null;
+        }
 		
 		this.update_status = function(data) {
 			if(data) {
@@ -177,14 +202,12 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 			if(this.seasons.length == this.last_season && this.last_episode >= this.seasons[this.last_season].length) {
 				if(this.show_status == 'Ended' || this.show_status == 'Canceled') {
 					this.status = this.show_status;
-					this.next_ep = '';
 				} else {
 					this.status = 'Unavailable';
-					this.next_ep = this.show_status;
 				}
 			} else if(this.seasons.length >= this.last_season) {
 				var nextep = {};
-				if(this.last_episode < this.seasons[this.last_season].length)
+				if(this.last_season > 0 && this.last_episode < this.seasons[this.last_season].length)
 					nextep = this.seasons[this.last_season][this.last_episode];
 				else
 					nextep = this.seasons[this.last_season+1][0];
@@ -199,7 +222,6 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
                 } else {
 					this.status = 'Unavailable';
                 }
-                this.next_ep = nextep.title + ' (' + nextep.airdate + ')';
 			} else {
                 this.status = 'Error';
                 console.error('Last season is greater then total seasons', this);
@@ -207,7 +229,6 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 			
 			if(data && (data.enabled != null && !data.enabled) && !(this.status == 'Ended' || this.status == 'Canceled')) {
 				this.status = 'Disabled';
-				this.next_ep = '';
 			}
 		};
 		
