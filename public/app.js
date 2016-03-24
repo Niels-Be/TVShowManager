@@ -310,7 +310,7 @@ app.controller('GlobalController', [
 				if(old_search == name)
 					$scope.search.open = true;
 				else {
-					$scope.search.results = [];
+					//$scope.search.results = [];
 					ShowQuery.search(name)
 						.success(function(data) {
 							//console.log("Seach open", data);

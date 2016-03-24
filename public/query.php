@@ -20,7 +20,7 @@ if(!empty($postdata))
 	$_POST = json_decode($postdata,TRUE);
 
 if(!empty($_GET['search']))
-	$res = search($_GET['search']);
+	$res = search(urldecode($_GET['search']));
 
 elseif(!empty($_GET['show']))
 	$res = getShow($_GET['show'], isset($_GET['force']), isset($_GET['q']));

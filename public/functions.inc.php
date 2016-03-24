@@ -1,32 +1,35 @@
 <?php
 
 //http://stackoverflow.com/questions/1966503/does-imdb-provide-an-api
-function search($str) {
-    $str = strtolower($str);
+function search($title) {
+    $str = strtolower($title);
 	$str = str_replace(array(" "), "_", $str);
     $str = str_replace(array("(",")","-",":",".",";",",","'",'"',"+","#"), "", $str);
     
-    if(strlen($str) <= 1)
+    if(strlen($str) <= 2)
         return FALSE;
-
-    $str = urlencode($str);
-
-	$data = @file_get_contents("http://sg.media-imdb.com/suggests/".substr($str, 0, 1)."/$str.json");
+    
+    do {
+        $str2 = urlencode($str);
+	    $data = @file_get_contents("http://sg.media-imdb.com/suggests/".substr($str2, 0, 1)."/$str2.json");
+        $str = substr($str, 0, -1);
+    } while($data === FALSE && strlen($str) > 2);
 	if($data === FALSE) {
 #		http_response_code(404);
 #       echo "Nope";
 		return FALSE;
 	}
-	
-    $json = substr($data, 5+strlen($str)+1, -1);
+      
+    $json = substr($data, 5+strlen($str)+2, -1);
 	$obj = json_decode($json,TRUE);
 	
-#	print_r($obj);
+	#print_r($obj);
 	
 	$res = array('show' => array());
 	if(isset($obj['d'])) {
 		foreach ($obj['d'] as $show) {
-            if(isset($show['q']) && $show['q'] == "TV series") {
+            #echo strtolower($show['l'])."\n";
+            if(isset($show['q']) && $show['q'] == "TV series" && startsWith(strtolower($show['l']), strtolower($title))) {
     			$res['show'][] = array(
 	    			'imdb_id' => $show['id'],
 		    		'name' => 	 $show['l'],
@@ -267,4 +270,9 @@ function register($user, $pw) {
 	else
 		echo json_encode(array('msg' => 'Username already exists'));
 	exit;
+}
+
+function startsWith($haystack, $needle) {
+    // search backwards starting from haystack length characters from the end
+    return $needle === "" || strrpos($haystack, $needle, -strlen($haystack)) !== false;
 }
