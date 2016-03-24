@@ -95,11 +95,20 @@ if(isset($_SESSION['userid'])) {
 		
 			<div class="panel-body">
                 <?php if(isset($res['msg']) && $res['msg'] != 'OK') echo '<div class="alert alert-danger">'.$res['msg'].'</div>'; ?>
+				<div class="alert alert-success" ng-show="last_added_show"><a href="#" class="close" ng-click="last_added_show=''" aria-label="close">&times;</a>Added {{last_added_show}} to your list</div>
+				<!--<div class="alert alert-danger" ng-if="search.new_error"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>Something went wrong while adding the show</div>-->
 				<div class="navbar navbar-default">
 					<form class="navbar-form navbar-left" role="search">
 						<div class="form-group" dropdown is-open="search.open" ng-class="{'has-error': new_error}">
-							<input type="text" ng-model="new_name" ng-change="show_search(new_name)" ng-focus="show_search(new_name)" class="form-control" placeholder="Search for new TV Shows">
-							<div class="dropdown-menu">
+                            <div class="input-group">
+                                <input type="text" ng-model="new_name" ng-change="show_search(new_name)" ng-focus="show_search(new_name)" class="form-control" placeholder="Search for new TV Shows" style="width: 300px;">
+                                <span class="input-group-addon">
+                                    <i ng-if="!search.searching" class="glyphicon glyphicon-search"></i>
+                                    <i ng-if="search.searching"  class="glyphicon glyphicon-refresh gly-spin"></i>
+                                </span>
+                            </div>
+							<div class="dropdown-menu" style="left: initial">
+                                <span ng-show="search.results.length==0" style="margin-left: 5px"><i class="glyphicon glyphicon-info-sign"></i> Sorry nothing found</span>
 								<table class="table table-default">
 								<tr><th>Name</th><th>Year</th></tr>
 								<tr ng-repeat="show in search.results | limitTo:5">
@@ -110,8 +119,6 @@ if(isset($_SESSION['userid'])) {
 								</table>
 							</div>
 						</div>
-						<div class="alert alert-success" ng-if="last_added_show!=''"><a href="#" class="close" ng-click="last_added_show=''" aria-label="close">&times;</a>Added {{last_added_show}} to your list</div>
-						<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>Something went wrong while adding the show</div>
 						<!--<button ng-click="show_add()" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> Add</button>-->
 					</form>
 				</div>

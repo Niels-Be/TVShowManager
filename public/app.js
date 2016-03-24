@@ -283,7 +283,7 @@ app.controller('GlobalController', [
 		$scope.show_search = function(name) {
 			$scope.new_error = false;
 			if(!name || name == '') return;
-			
+			$scope.search.searching = true;
 			if(timer){
 				$timeout.cancel(timer);
 			}	
@@ -296,8 +296,14 @@ app.controller('GlobalController', [
 						.success(function(data) {
 							//console.log("Seach open", data);
 							old_search = name;
-							$scope.search.results = Array.isArray(data.show) ? data.show : [data.show];
+                            if(data)
+							    $scope.search.results = Array.isArray(data.show) ? data.show : [data.show];
+                            else {
+                                $scope.search.results = [];
+                                $scope.search.new_error = true;
+                            }
 							$scope.search.open = true;
+                            $scope.search.searching=false;
 						});
 				}
 			},500);
@@ -317,6 +323,7 @@ app.controller('GlobalController', [
 					ShowQuery.user_add_show(id).
                         success(function(data,status) {
     					    $scope.shows.push(new TVShow(data, name));
+                            $scope.last_added_show = name;
 	    			    }).
                         error(function() {
                             alert("Something when wrong. Please try again");
@@ -324,6 +331,7 @@ app.controller('GlobalController', [
 
                     $scope.new_name = '';
 		    		$scope.search.open = false;
+                    $scope.search.searching=false;
 				}
 			} else {
 				//console.log("No ID set");
