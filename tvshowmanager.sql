@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS `user` (
 CREATE TABLE IF NOT EXISTS `user_shows` (
   `user_id` int(11) NOT NULL,
   `show_id` int(11) NOT NULL,
-  `last_season` int(11) NOT NULL DEFAULT '1',
-  `last_episode` int(11) NOT NULL DEFAULT '1',
+  `last_season` int(11) NOT NULL DEFAULT '0',
+  `last_episode` int(11) NOT NULL DEFAULT '0',
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
   `favourite` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

@@ -5,12 +5,12 @@ This is a nice and simple Web UI that allows you to keep track of your TV shows.
 It is useful if you are watching multiple shows at the same time and cannot remember at which episode you stopped watching.
 Also, it shows you if a new episode is available or when the next comes online.
 
-![Screenshot](http://i.imgur.com/NOQi8dO.png)
+![Screenshot](http://i.imgur.com/HfCwj2K.png)
 
 
 
 ## Usage
-You can either use my site at http://waeco-soft.com/TvShowManager or setup your own homepage.
+You can either use my site at https://www.waeco-soft.com/TvShowManager or setup your own homepage.
 
 When using my site you can try it out without creating an account. But keep in mind your shows won't be saved unless you create an account.
 
@@ -25,7 +25,7 @@ Clone this repository
 
 #### Webserver
 1. Install a Webserver and setup PHP
-2. Copy all files into a folder of your webroot
+2. Copy all files from `public` into a directory in your webroot
 
 #### Config
 1. Get a API key from http://thetvdb.com/?tab=apiregister

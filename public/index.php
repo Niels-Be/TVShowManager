@@ -95,11 +95,20 @@ if(isset($_SESSION['userid'])) {
 
 			<div class="panel-body">
                 <?php if(isset($res['msg']) && $res['msg'] != 'OK') echo '<div class="alert alert-danger">'.$res['msg'].'</div>'; ?>
+				<div class="alert alert-success" ng-show="last_added_show"><a href="#" class="close" ng-click="last_added_show=''" aria-label="close">&times;</a>Added {{last_added_show}} to your list</div>
+				<!--<div class="alert alert-danger" ng-if="search.new_error"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>Something went wrong while adding the show</div>-->
 				<div class="navbar navbar-default">
 					<form class="navbar-form navbar-left" role="search">
 						<div class="form-group" uib-dropdown is-open="search.open" ng-class="{'has-error': new_error}">
-							<input type="text" ng-model="new_name" ng-change="show_search(new_name)" ng-focus="show_search(new_name)" class="form-control" placeholder="Add new TV Show">
-							<div class="dropdown-menu" ng-init="search.results={name:'jorge', year:'2'}">
+                            <div class="input-group">
+                                <input type="text" ng-model="new_name" ng-change="show_search(new_name)" ng-focus="show_search(new_name)" class="form-control" placeholder="Search for new TV Shows" style="width: 300px;">
+                                <span class="input-group-addon">
+                                    <i ng-if="!search.searching" class="glyphicon glyphicon-search"></i>
+                                    <i ng-if="search.searching"  class="glyphicon glyphicon-refresh gly-spin"></i>
+                                </span>
+                            </div>
+							<div class="dropdown-menu" style="left: initial" ng-init="search.results=[]">
+                                <span ng-show="search.results.length==0" style="margin-left: 5px"><i class="glyphicon glyphicon-info-sign"></i> Sorry nothing found</span>
 								<table class="table table-default">
 								<tr><th>Name</th><th>Year</th></tr>
 								<tr ng-repeat="show in search.results | limitTo:5">
@@ -110,7 +119,7 @@ if(isset($_SESSION['userid'])) {
 								</table>
 							</div>
 						</div>
-						<button ng-click="show_add()" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> Add</button>
+						<!--<button ng-click="show_add()" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> Add</button>-->
 					</form>
 				</div>
 
@@ -126,12 +135,13 @@ if(isset($_SESSION['userid'])) {
 								<a style="color: #333;" href="#" ng-click="show_predicate='name';show_reverse=!show_reverse;">Name</a>
 								<small ng-if="show_predicate=='name'" class="glyphicon glyphicon-chevron-{{show_reverse?'down':'up'}}"></small>
 							</th>
-							<th style="width: 15%">Last Episode</th>
-							<th style="width: 15%">
-								<a style="color: #333;" href="#" ng-click="show_predicate='status';show_reverse=!show_reverse;">Status</a>
+							<th style="width: 16%">Next Episode</th>
+							<th style="width: 12%">
+								<a style="color: #333;" href="#" ng-click="show_predicate='status';show_reverse=!show_reverse;">Status</a> 
 								<small ng-if="show_predicate=='status'" class="glyphicon glyphicon-chevron-{{show_reverse?'down':'up'}}"></small>
 							</th>
-							<th style="width: 35%">Next Episode</th>
+							<th style="width: 30%">Episode Name</th>
+                            <th style="width: 110px">Date</th>
 							<th style="width: 96px"></th>
 						</tr>
 						<tr ng-repeat="show in shows | orderBy:get_show_predicate():show_reverse" class="{{show.class}}">
@@ -140,12 +150,13 @@ if(isset($_SESSION['userid'])) {
 							</td>
 							<td>{{show.name}}</td>
 							<td>
-								{{show.last_ep}}
+								<span style="width: 62px; display: inline-block;">{{show.next_ep}}</span>
 								<button ng-if="!show.disabled" ng-disabled="show.first" ng-mousedown="show_start_dec(show)" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-chevron-left"></span></button>
 								<button ng-if="!show.disabled" ng-disabled="show.ended" ng-mousedown="show_start_inc(show)" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-chevron-right"></span></button>
 							</td>
 							<td>{{show.status}}</td>
-							<td>{{show.next_ep}}</td>
+							<td>{{show.next_ep_name}}</td>
+                            <td>{{show.next_ep_date}}</td>
 							<td>
 								<button tooltip="Refresh" ng-click="show.refresh(true)" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-refresh {{show.loading?'gly-spin':''}}"></span></button>
 								<button tooltip="Enable" ng-if="show.done"  ng-disabled="show.ended" ng-click="show.activate()" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-new-window"></span></button>

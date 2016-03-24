@@ -83,38 +83,52 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 		});
 		this.status = '?';
 		this.show_status = '';
-		this.__defineGetter__('done', function() {
+		this.__defineGetter__('done', function() { 
 			return this.status == 'Disabled' || this.ended;
 		});
         this.__defineGetter__('disabled', function() {
             return this.status == 'Disabled';
         });
         this.__defineGetter__('first', function() {
-            return this.last_episode == 1 && this.last_season == 1;
+            return this.last_season == 0;
         });
 		this.__defineGetter__('ended', function() {
 			return this.status == 'Ended' || this.status == 'Canceled';
 		});
-		this.__defineGetter__('last_ep', function() {
-			return 'S' + pad(this.last_season, 2) + ' E' + pad(this.last_episode, 2);
+		this.__defineGetter__('next_ep', function() { 
+            var next = this.getNext();
+            if(next)
+    			return 'S' + pad(next.season, 2) + ' E' + pad(next.episode, 2); 
+            if(this.ended)
+                return 'End';
+            //Fallback
+    		return 'S' + pad(this.last_season, 2) + ' E' + pad(this.last_episode, 2) + "+"; 
+            //return 'Next';          
 		});
-		this.next_ep = '';
-
-		this.last_season = 1;
-		this.last_episode = 1;
+        this.__defineGetter__('next_ep_name', function() {
+            var next = this.getNext();
+            return next ? next.title : this.show_status;
+        });
+        this.__defineGetter__('next_ep_date', function() {
+            var next = this.getNext();
+            return next ? next.airdate : '';
+        });
+		
+		this.last_season = 0;
+		this.last_episode = 0;
 		this.favourite = false;
-
+		
 		this.loading = false;
 		this.image = '';
-
+		
 		this.seasons = {};
-
+		
 		/* Functions */
-
+		
 		this.inc = function() {
 			if(this.loading) return;
 			this.last_episode++;
-			if(this.last_episode > this.seasons[this.last_season].length) {
+			if(this.last_season == 0 || this.last_episode > this.seasons[this.last_season].length) {
 				if(this.last_season < this.seasons.length) {
 					this.last_season++;
 					this.last_episode = 1;
@@ -124,28 +138,31 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 			this.update_status();
 			ShowQuery.user_show_update(this);
 		};
-
+		
 		this.dec = function() {
 			if(this.loading) return;
 			this.last_episode--;
 			if(this.last_episode == 0) {
-				this.last_episode = 1;
+                this.last_episode = 1;
 				if(this.last_season > 1) {
-					this.last_season--;
+                    this.last_season--;
 					this.last_episode = this.seasons[this.last_season].length;
-				}
+				} else {
+                    this.last_episode = 0;
+                    this.last_season = 0; 
+                }
 			}
 			this.update_status();
 			ShowQuery.user_show_update(this);
 		};
-
+		
 		this.activate = function() {
 			if(this.status != 'Disabled') {
 				this.status = 'Disabled';
-				this.next_ep = '';
 			} else
 				this.update_status();
 			ShowQuery.user_show_update(this);
+            console.log(this);
 		};
 
 		this.setFavourite = function() {
@@ -153,6 +170,14 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 			ShowQuery.user_show_update(this);
 		}
 
+        this.getNext = function() {
+            if(this.last_season > 0 && this.seasons[this.last_season].length > this.last_episode)
+                return this.seasons[this.last_season][this.last_episode];
+            if(this.seasons.length >= this.last_season + 1)
+                return this.seasons[this.last_season + 1][0];
+            return null;
+        }
+		
 		this.update_status = function(data) {
 			if(data) {
 				this.seasons = data.seasons;
@@ -166,8 +191,8 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 				if((data.enabled != null && !data.enabled) && !(this.show_status == 'Ended' || this.show_status == 'Canceled'))
 					this.status = 'Disabled';
 
-				this.last_season = data.last_season || 1;
-				this.last_episode = data.last_episode || 1;
+				this.last_season = data.last_season || 0;
+				this.last_episode = data.last_episode || 0;
 				this.favourite = data.favourite;
 
 				if(this.status == 'Disabled') return;
@@ -176,14 +201,12 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 			if(this.seasons.length == this.last_season && this.last_episode >= this.seasons[this.last_season].length) {
 				if(this.show_status == 'Ended' || this.show_status == 'Canceled') {
 					this.status = this.show_status;
-					this.next_ep = '';
 				} else {
 					this.status = 'Unavailable';
-					this.next_ep = this.show_status;
 				}
 			} else if(this.seasons.length >= this.last_season) {
 				var nextep = {};
-				if(this.last_episode < this.seasons[this.last_season].length)
+				if(this.last_season > 0 && this.last_episode < this.seasons[this.last_season].length)
 					nextep = this.seasons[this.last_season][this.last_episode];
 				else
 					nextep = this.seasons[this.last_season+1][0];
@@ -198,7 +221,6 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
                 } else {
 					this.status = 'Unavailable';
                 }
-                this.next_ep = nextep.title + ' (' + nextep.airdate + ')';
 			} else {
                 this.status = 'Error';
                 console.error('Last season is greater then total seasons', this);
@@ -206,10 +228,9 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 
 			if(data && (data.enabled != null && !data.enabled) && !(this.status == 'Ended' || this.status == 'Canceled')) {
 				this.status = 'Disabled';
-				this.next_ep = '';
 			}
 		};
-
+		
 		this.refresh = function(force) {
 			//console.log("Refreshing Show ", this.name, this.id);
 
@@ -219,7 +240,7 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 				success(function(data, status, headers, config) {
 					//console.log(data);
 					me.update_status(data);
-
+					
 					me.loading = false;
 				}).error(function() {
 					me.status = 'Error';
@@ -231,7 +252,7 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 			this.update_status(id);
 		} else
 			this.refresh();
-
+		
 		this.delete = function() {
 			//console.log("Deleting Show", this.name);
 			ShowQuery.user_del_show(this);
@@ -275,17 +296,16 @@ app.controller('GlobalController', [
 		$scope.shows = [];
 		for(var i = 0; i < usershows.length; i++)
 			$scope.shows.push(new TVShow(usershows[i]));
-
-		// $scope.search = {open: false, results: []}
+	
 		var old_search = '';
 		var timer = 0;
 		$scope.show_search = function(name) {
 			$scope.new_error = false;
 			if(!name || name == '') return;
-
+			$scope.search.searching = true;
 			if(timer){
 				$timeout.cancel(timer);
-			}
+			}	
 			timer = $timeout(function(){
 				if(old_search == name)
 					$scope.search.open = true;
@@ -293,15 +313,16 @@ app.controller('GlobalController', [
 					$scope.search.results = [];
 					ShowQuery.search(name)
 						.success(function(data) {
-							console.log("Seach open", data.show);
+							//console.log("Seach open", data);
 							old_search = name;
-							if (Array.isArray(data.show)){
-								$scope.search.results = data.show;
-								old_data = data.show;
-							}
-							else
-								$scope.search.results = old_data;
+                            if(data)
+							    $scope.search.results = Array.isArray(data.show) ? data.show : [data.show];
+                            else {
+                                $scope.search.results = [];
+                                $scope.search.new_error = true;
+                            }
 							$scope.search.open = true;
+                            $scope.search.searching=false;
 						});
 				}
 			},500);
@@ -313,7 +334,7 @@ app.controller('GlobalController', [
 				id=sid;
 			else if($scope.search.results && $scope.search.results.length > 0)
 				id=$scope.search.results[0].imdb_id;
-
+			
 			if(id) {
 				if(find_array($scope.shows, function(elem) { return elem.id == id; }))
 					alert("Show is already in list");
@@ -321,6 +342,7 @@ app.controller('GlobalController', [
 					ShowQuery.user_add_show(id).
                         success(function(data,status) {
     					    $scope.shows.push(new TVShow(data, name));
+                            $scope.last_added_show = name;
 	    			    }).
                         error(function() {
                             alert("Something went wrong. Please try again");
@@ -328,6 +350,7 @@ app.controller('GlobalController', [
 
                     $scope.new_name = '';
 		    		$scope.search.open = false;
+                    $scope.search.searching=false;
 				}
 			} else {
 				//console.log("No ID set");

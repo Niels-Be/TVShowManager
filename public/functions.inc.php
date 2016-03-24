@@ -13,7 +13,7 @@ function search($str) {
 
 	$data = @file_get_contents("http://sg.media-imdb.com/suggests/".substr($str, 0, 1)."/$str.json");
 	if($data === FALSE) {
-		http_response_code(404);
+#		http_response_code(404);
 #       echo "Nope";
 		return FALSE;
 	}
