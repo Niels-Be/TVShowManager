@@ -98,7 +98,7 @@ if(isset($_SESSION['userid'])) {
 				<div class="navbar navbar-default">
 					<form class="navbar-form navbar-left" role="search">
 						<div class="form-group" dropdown is-open="search.open" ng-class="{'has-error': new_error}">
-							<input type="text" ng-model="new_name" ng-change="show_search(new_name)" ng-focus="show_search(new_name)" class="form-control" placeholder="Add new TV Show">
+							<input type="text" ng-model="new_name" ng-change="show_search(new_name)" ng-focus="show_search(new_name)" class="form-control" placeholder="Search for new TV Shows">
 							<div class="dropdown-menu">
 								<table class="table table-default">
 								<tr><th>Name</th><th>Year</th></tr>
@@ -110,7 +110,9 @@ if(isset($_SESSION['userid'])) {
 								</table>
 							</div>
 						</div>
-						<button ng-click="show_add()" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> Add</button>
+						<div class="alert alert-success" ng-if="last_added_show!=''"><a href="#" class="close" ng-click="last_added_show=''" aria-label="close">&times;</a>Added {{last_added_show}} to your list</div>
+						<div class="alert alert-danger"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>Something went wrong while adding the show</div>
+						<!--<button ng-click="show_add()" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> Add</button>-->
 					</form>
 				</div>
 			
