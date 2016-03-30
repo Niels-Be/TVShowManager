@@ -6,41 +6,43 @@ app.config(['$compileProvider', function ($compileProvider) {
 app.factory('ShowQuery', ['$http', '$timeout', function($http, $timeout) {
 	return new function() {
 		this.search = function(name) {
-				return $http.get("query.php", {params: {search: name}});
+				return $http.get("/api/v1/show/search/"+encodeURI(name));
 		};
-		this.showinfo = function(id, force) {
-			if(force)
-				return $http.get("query.php", {params: {show: id, force: true}});
-			else
-				return $http.get("query.php", {params: {show: id}});
+		
+		this.allShows = function() {
+			return $http.get("/api/v1/show");
+		};
+		
+		this.showinfo = function(id) {
+			return $http.get("/api/v1/show/"+id);
+		};
+		
+		this.refreshShow = function(id) {
+			return $http.post("/api/v1/show/"+id+"/refresh");
 		};
 
 		this.user_add_show = function(id) {
-			return $http.post("query.php", {addshow: id});
+			return $http.put("/api/v1/show/"+id);
 		};
 
 		this.user_del_show = function(show) {
-			return $http.post("query.php", {delshow: show.id});
-		};
-
-		this.user_del_show = function(show) {
-			return $http.post("query.php", {delshow: show.id});
+			return $http.delete("/api/v1/show/"+show.id);
 		};
 
 		this.login = function(user, pw, stay) {
-			return $http.post("query.php", {username: user, password: pw, stay: !!stay});
+			return $http.post("/api/v1/user/login", {username: user, password: pw, stay: !!stay});
 		};
 
 		this.login_token = function(user, token) {
-			return $http.post("query.php", {username: user, token: token});
+			return $http.post("/api/v1/user/token", {username: user, token: token});
 		};
 
 		this.logout = function() {
-			return $http.post("query.php", {logout: true});
+			return $http.post("/api/v1/user/logout");
 		};
 
 		this.register = function(user, pw) {
-			return $http.post("query.php", {registername: user, password: pw});
+			return $http.post("/api/v1/user/register", {username: user, password: pw});
 		};
 
 		var timer;
@@ -48,13 +50,13 @@ app.factory('ShowQuery', ['$http', '$timeout', function($http, $timeout) {
 			if(timer)
 				$timeout.cancel(timer);
 			timer = $timeout(function(){
-				$http.post("query.php", {
-					updateshow: show.id,
+				$http.post("/api/v1/show/"+show.id, {
+					show: show.id,
 					last_season: show.last_season,
 					last_episode: show.last_episode,
-					enabled: !show.done,
+					enabled: !show.disabled,
 					favourite: show.favourite
-				}, {headers : {'Content-Type': 'application/x-www-form-urlencoded'}});
+				});
 			}, 500);
 		};
 	};
@@ -79,7 +81,7 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 				return 'warning';
 			default:
 				return '';
-			};
+			}
 		});
 		this.status = '?';
 		this.show_status = '';
@@ -111,7 +113,7 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
         });
         this.__defineGetter__('next_ep_date', function() {
             var next = this.getNext();
-            return next ? next.airdate : '';
+            return next ? (next.airdate == "0000-00-00" ? "TBA" : new Date(next.airdate).toLocaleDateString()) : '';
         });
 		
 		this.last_season = 0;
@@ -128,8 +130,8 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 		this.inc = function() {
 			if(this.loading) return;
 			this.last_episode++;
-			if(this.last_season == 0 || this.last_episode > this.seasons[this.last_season].length) {
-				if(this.last_season < this.seasons.length) {
+			if(this.last_season == 0 || this.last_episode >= this.seasons[this.last_season].length) {
+				if(this.last_season + 1 < this.seasons.length) {
 					this.last_season++;
 					this.last_episode = 1;
 				} else
@@ -146,7 +148,7 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
                 this.last_episode = 1;
 				if(this.last_season > 1) {
                     this.last_season--;
-					this.last_episode = this.seasons[this.last_season].length;
+					this.last_episode = this.seasons[this.last_season].length - 1;
 				} else {
                     this.last_episode = 0;
                     this.last_season = 0; 
@@ -168,52 +170,56 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 		this.setFavourite = function() {
 			this.favourite = !this.favourite;
 			ShowQuery.user_show_update(this);
-		}
+		};
 
         this.getNext = function() {
-            if(this.last_season > 0 && this.seasons[this.last_season].length > this.last_episode)
-                return this.seasons[this.last_season][this.last_episode];
-            if(this.seasons.length >= this.last_season + 1)
-                return this.seasons[this.last_season + 1][0];
+            if(this.last_season > 0 && this.seasons[this.last_season].length > this.last_episode + 1)
+                return this.seasons[this.last_season][this.last_episode + 1];
+            if(this.seasons.length > this.last_season + 1)
+                return this.seasons[this.last_season + 1][1];
             return null;
-        }
+        };
 		
 		this.update_status = function(data) {
 			if(data) {
-				this.seasons = data.seasons;
-				var max = 0;
-				for(var i in data.seasons)
-					max = parseInt(i) > max ? parseInt(i) : max;
-				this.seasons.length = max;
+				this.seasons = [];
+				for(var i in data.episodes) {
+					if(!this.seasons[data.episodes[i].season])
+						this.seasons[data.episodes[i].season] = [];
+					this.seasons[data.episodes[i].season][data.episodes[i].episode] = data.episodes[i];
+				}
+				
 				this.image = data.image;
 				this.name = data.name;
 				this.show_status = data.status == 'Canceled/Ended' ? 'Ended' : data.status;
-				if((data.enabled != null && !data.enabled) && !(this.show_status == 'Ended' || this.show_status == 'Canceled'))
+				
+				if(data.enabled === false && !(this.show_status == 'Ended' || this.show_status == 'Canceled'))
 					this.status = 'Disabled';
-
-				this.last_season = data.last_season || 0;
-				this.last_episode = data.last_episode || 0;
-				this.favourite = !!data.favourite;
+				if(data.last_season)
+					this.last_season = data.last_season;
+				if(data.last_episode)
+					this.last_episode = data.last_episode;
+				if(data.favourite)
+					this.favourite = !!data.favourite;
 
 				if(this.status == 'Disabled') return;
 			}
 
-			if(this.seasons.length == this.last_season && this.last_episode >= this.seasons[this.last_season].length) {
+			if(this.last_season + 1 >= this.seasons.length && this.last_episode + 1 >= this.seasons[this.last_season].length) {
 				if(this.show_status == 'Ended' || this.show_status == 'Canceled') {
 					this.status = this.show_status;
 				} else {
 					this.status = 'Unavailable';
 				}
-			} else if(this.seasons.length >= this.last_season) {
-				var nextep = {};
-				if(this.last_season > 0 && this.last_episode < this.seasons[this.last_season].length)
-					nextep = this.seasons[this.last_season][this.last_episode];
+			} else if(this.seasons.length >= this.last_season + 1) {
+				var nextep = null;
+				if(this.last_season > 0 && this.last_episode + 1 < this.seasons[this.last_season].length)
+					nextep = this.seasons[this.last_season][this.last_episode + 1];
 				else
-					nextep = this.seasons[this.last_season+1][0];
+					nextep = this.seasons[this.last_season + 1][1];
 
 				var now = new Date();
-				var next = nextep.airdate.split('-');
-				var nextdate = new Date(next[0], next[1]-1, next[2]);
+				var nextdate = new Date(nextep.airdate);
                 if(nextdate.getTime() < 0) {
                     this.status = 'Undetermined';
                 } else if(nextdate <= now) {
@@ -236,10 +242,13 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 
 			this.loading = true;
 			var me = this;
-			ShowQuery.showinfo(this.id, force).
+			ShowQuery.refreshShow(this.id, force).
 				success(function(data, status, headers, config) {
 					//console.log(data);
-					me.update_status(data);
+					if(data.status == "OK")
+						me.update_status(data.show);
+					else
+						console.error(data.msg, data.err);
 					
 					me.loading = false;
 				}).error(function() {
@@ -256,13 +265,19 @@ app.factory('TVShow', ['ShowQuery', function (ShowQuery) {
 		this.delete = function() {
 			//console.log("Deleting Show", this.name);
 			ShowQuery.user_del_show(this);
-		}
+		};
 	};
 }]);
 
+app.value('user', {
+	loggedin: false,
+	id: 0,
+	name: ''
+});
+
 app.controller('GlobalController', [
-	'$scope', 'ShowQuery', '$timeout', '$interval', 'TVShow','$uibModal', 
-	function($scope, ShowQuery, $timeout, $interval, TVShow, $modal)
+	'$scope', 'user', 'ShowQuery', '$timeout', '$interval', 'TVShow','$uibModal', 
+	function($scope, user, ShowQuery, $timeout, $interval, TVShow, $modal)
 	{
 		$scope.show_predicate = 'favourite';
 		$scope.show_reverse = true;
@@ -282,20 +297,33 @@ app.controller('GlobalController', [
 				default:
 					return 1;
 				}
-			};
+			}
 			return [$scope.show_predicate=='status' ? order_status : $scope.show_predicate, '+favourite', '-name', order_status];
 		};
 
-		$scope.user = {
-			loggedin: userid ? true : false,
-			id: userid,
-			name: username
-		};
-
-
+		$scope.user = user;
 		$scope.shows = [];
-		for(var i = 0; i < usershows.length; i++)
-			$scope.shows.push(new TVShow(usershows[i]));
+		
+		ShowQuery.login_token().
+		success(function(data) {
+			//console.log("Login: ",data);
+			if(data.status == "OK") {
+				user.loggedin = true;
+				user.name = data.username;
+				ShowQuery.allShows().success(function(data) {
+					if(data.status == "OK") {
+						for(var i in data.shows) {
+							$scope.shows.push(new TVShow(data.shows[i]));
+						}
+					}
+					else
+						console.error(data.msg, data.err);
+				});
+			}
+		});
+		
+		//for(var i = 0; i < usershows.length; i++)
+		//	$scope.shows.push(new TVShow(usershows[i]));
 	
 		var old_search = '';
 		var timer = 0;
@@ -315,11 +343,12 @@ app.controller('GlobalController', [
 						.success(function(data) {
 							//console.log("Seach open", data);
 							old_search = name;
-                            if(data)
-							    $scope.search.results = Array.isArray(data.show) ? data.show : [data.show];
+                            if(data.status == "OK")
+							    $scope.search.results = data.shows;
                             else {
                                 $scope.search.results = [];
                                 $scope.search.new_error = true;
+                                console.error(data.msg, data.err);
                             }
 							$scope.search.open = true;
                             $scope.search.searching=false;
@@ -341,7 +370,7 @@ app.controller('GlobalController', [
 				else {
 					ShowQuery.user_add_show(id).
                         success(function(data,status) {
-    					    $scope.shows.push(new TVShow(data, name));
+    					    $scope.shows.push(new TVShow(data.show, name));
                             $scope.last_added_show = name;
 	    			    }).
                         error(function() {
@@ -391,7 +420,7 @@ app.controller('GlobalController', [
 					show.inc();
 				}, 100);
 			}, 250);
-		}
+		};
 
 		$scope.show_start_dec = function(show) {
 			show.dec();
@@ -404,7 +433,7 @@ app.controller('GlobalController', [
 					show.dec();
 				}, 100);
 			}, 250);
-		}
+		};
 
 		$scope.openLogin = function() {
 			$modal.open({
@@ -414,16 +443,20 @@ app.controller('GlobalController', [
 		};
 
 		$scope.user_logout = function() {
-			ShowQuery.logout().
-				success(function(data) {
-				window.location.reload();
+			ShowQuery.logout().success(function(data) {
+				if(data.status == 'OK') {
+					user.loggedin = false;
+					user.name = '';
+					$scope.shows = [];
+				} else
+					console.error(data.msg, data.err);
 			});
 		};
 }]);
 
 app.controller('LoginModal', [
-	'$scope', 'ShowQuery', '$uibModalInstance',
-	function($scope, ShowQuery, $modalInstance)
+	'$scope', 'user', 'ShowQuery', '$uibModalInstance',
+	function($scope, user, ShowQuery, $modalInstance)
 	{
 		$scope.error = null;
 		$scope.success = null;
@@ -432,15 +465,17 @@ app.controller('LoginModal', [
 			$modalInstance.dismiss('close');
 		};
 
-		$scope.user_login = function(user, pw, stay) {
+		$scope.user_login = function(username, pw, stay) {
 			$scope.error = null;
 			$scope.success = null;
 
-			ShowQuery.login(user, pw, stay).
+			ShowQuery.login(username, pw, stay).
 				success(function(data) {
 					//console.log("Login: ",data);
-					if(data.msg == "OK") {
+					if(data.status == "OK") {
 						$scope.success = "Login Successful";
+						user.loggedin = true;
+						user.name = data.username;
 						window.location.reload();
 					} else {
 						$scope.error = data.msg;
@@ -449,15 +484,18 @@ app.controller('LoginModal', [
 			return false;
 		};
 
-		$scope.user_register = function(user, pw) {
+		$scope.user_register = function(username, pw) {
 			$scope.error = null;
 			$scope.success = null;
 
-			ShowQuery.register(user, pw).
+			ShowQuery.register(username, pw).
 				success(function(data) {
 					//console.log("Register: ",data);
-					if(data.msg == "OK") {
-						$scope.success = "Registration Successful. You can login now";
+					if(data.status == "OK") {
+						$scope.success = "Registration Successful";
+						user.loggedin = true;
+						user.name = data.username;
+						window.location.reload();
 					} else {
 						$scope.error = data.msg;
 					}

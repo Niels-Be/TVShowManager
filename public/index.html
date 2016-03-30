@@ -1,27 +1,3 @@
-<?php
-header('Cache-Control: no-store, no-cache, must-revalidate');
-header('Pragma: no-cache'); // HTTP 1.0.
-header('Expires: 0'); // Proxies.
-require('config.inc.php');
-require('functions.inc.php');
-session_start();
-
-@$db = new mysqli($mysql_host, $mysql_user, $mysql_pw, $mysql_db) or die($db->error);
-
-$user = 0;
-$name = '';
-if(isset($_SESSION['userid'])) {
-	$user = $_SESSION['userid'];
-	$name = $_SESSION['username'];
-} elseif(isset($_COOKIE['usertoken'])) {
-	$res = login2($_COOKIE['usertoken']);
-    if($res['msg'] == 'OK') {
-    	$user = $_SESSION['userid'];
-	    $name = $_SESSION['username'];
-    }
-}
-
-?>
 <!DOCTYPE html>
 <html ng-app="TVShowManager">
 <head>
@@ -32,14 +8,6 @@ if(isset($_SESSION['userid'])) {
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
 	<link rel="stylesheet" href="style.css">
-	<script type="text/javascript">
-		var userid, username, usershows = [];
-		<?php if($user != 0) {
-			echo "userid = $user;";
-			echo "username = '$name';";
-			echo 'usershows = '.json_encode(getUserShows()).';';
-		} ?>
-	</script>
 </head>
 <body ng-controller="GlobalController">
 	<div class="container">
@@ -94,7 +62,6 @@ if(isset($_SESSION['userid'])) {
 			</nav>
 
 			<div class="panel-body">
-                <?php if(isset($res['msg']) && $res['msg'] != 'OK') echo '<div class="alert alert-danger">'.$res['msg'].'</div>'; ?>
 				<div class="alert alert-success" ng-show="last_added_show"><a href="#" class="close" ng-click="last_added_show=''" aria-label="close">&times;</a>Added {{last_added_show}} to your list</div>
 				<!--<div class="alert alert-danger" ng-if="search.new_error"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>Something went wrong while adding the show</div>-->
 				<div class="navbar navbar-default">

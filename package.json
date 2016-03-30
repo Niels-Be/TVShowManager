@@ -1,0 +1,31 @@
+{
+  "name": "tvshowmanager",
+  "version": "1.0.0",
+  "description": "A simple web UI to manager your TV-Shows",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WaeCo/TVShowManager.git"
+  },
+  "author": "WaeCo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/WaeCo/TVShowManager/issues"
+  },
+  "homepage": "https://github.com/WaeCo/TVShowManager#readme",
+  "dependencies": {
+    "async": "^2.0.0-rc.2",
+    "body-parser": "^1.15.0",
+    "cookie-parser": "^1.4.1",
+    "express": "^4.13.4",
+    "express-session": "^1.13.0",
+    "mysql": "^2.10.2",
+    "orm": "^2.1.30",
+    "request": "^2.69.0",
+    "xml2js": "^0.4.16"
+  }
+}

@@ -1,0 +1,29 @@
+module.exports = {
+  session: {
+      secret: 'change me'
+  },
+  
+  user: {
+      
+  },
+  
+  show: {
+    provider: {
+      search: {
+        ImdbSearchProvider: true
+      },
+      metadata: {
+        TheTvDbMetadataProvider: {
+          apikey: ""
+        }
+      },
+      status: {
+        Movie4kStatusProvider: true,
+        KinoxStatusProvider: true
+      }
+    }
+  },
+  
+  databaseUrl: 'mysql://user:pass@host/db'
+    
+};
