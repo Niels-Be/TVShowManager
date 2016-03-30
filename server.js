@@ -80,8 +80,17 @@ app.use(orm.express(config.databaseUrl, {
         });
         models.episode.hasOne('show', models.show, { reverse: "episodes", required: true});
         
+        models.episodeStatus = db.define("episode_status", {
+            episode_id: {type: 'integer', key: true},
+            provider: {type: 'text', key: true},
+            url: {type: 'text', required: false}
+        });
+        //models.episode.hasOne('episode', models.episode, { reverse: "status" });
+        //models.episodeStatus.addProperty({name: "episode_id", type: 'integer', key: true});
+        
         db.sync(function(err) {
             if(err) throw err;
+            models.episodeStatus.find({url: null}).remove(function() {});
             next();
         });
     }
@@ -107,6 +116,8 @@ DELETE  /show/:id           //Remove show for user
 
 PUT     /show/:id/refresh   //Refresh show async -> Get show info should be called later
 POST    /show/:id/refresh   //Refresh show sync -> Same response as Get show info
+
+GET     /show/episode/:id   //Get status of episode
 
 GET     /show/search/:name  //Search for show
 

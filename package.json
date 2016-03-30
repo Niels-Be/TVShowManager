@@ -23,6 +23,7 @@
     "cookie-parser": "^1.4.1",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
+    "jsdom": "^8.2.0",
     "mysql": "^2.10.2",
     "orm": "^2.1.30",
     "request": "^2.69.0",

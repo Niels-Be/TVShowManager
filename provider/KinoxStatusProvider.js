@@ -5,5 +5,9 @@
 //       showUrl: $("#RsltTableStatic tr").each((index, elem) => {if($("img[alt=type]", elem).attr("src") == "/cs/themes/default/types/series.png" && $("img[alt=language]", elem).attr("src") == "/gr/sys/lng/2.png") console.log($(".Title a",elem).attr("href"));});
 
 module.exports = function(config) {
+    this.name ="kinox";
     
+    this.getUrl = function(show, season, episode, callback) {
+        callback(null, null);
+    };
 };

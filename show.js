@@ -95,6 +95,24 @@ module.exports = function(config) {
         });
     });
     
+    //get status of episode
+    show.get('/episode/:id', function(req, res) {
+        req.showProvider.status(req.params.id, function (err, status) {
+            if(err) return res.json({status: 'ERR', err: err, msg: err.message});
+            var result = {};
+            for(var i in status) {
+                if(status[i]) {
+                    result[status[i].provider] = {};
+                    for(var key in status[i]) {
+                        if(key != "episode_id")
+                            result[status[i].provider][key] = status[i][key];
+                    }
+                }
+            }
+            res.json({status: 'OK', res: result});
+        });
+    });
+    
     //search for show
     show.get('/search/:name', function(req, res) {
         req.showProvider.search(req.params.name, function(err, shows) {

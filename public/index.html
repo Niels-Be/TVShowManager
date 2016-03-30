@@ -121,7 +121,7 @@
 								<button ng-if="!show.disabled" ng-disabled="show.first" ng-mousedown="show_start_dec(show)" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-chevron-left"></span></button>
 								<button ng-if="!show.disabled" ng-disabled="show.ended" ng-mousedown="show_start_inc(show)" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-chevron-right"></span></button>
 							</td>
-							<td>{{show.status}}</td>
+							<td><a ng-repeat="provider in show.next_ep_status" ng-show="provider.url" target="_blank" href="{{provider.url}}"><img src="images/{{provider.provider}}.png" alt="{{provider.provider}}" /> </a>{{show.status}}</td>
 							<td>{{show.next_ep_name}}</td>
                             <td>{{show.next_ep_date}}</td>
 							<td>

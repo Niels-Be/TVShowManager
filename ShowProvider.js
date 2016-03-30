@@ -99,6 +99,43 @@ module.exports = function(config, models) {
         return searchProvider[0].search(name, callback);
     };
     
+    this.status = function(episodeId, callback) {
+        models.episodeStatus.find({episode_id: episodeId}, function(err, stati) {
+            if(err) return callback(err);
+            if(stati && stati.length > 0) return callback(null, stati);
+            
+            refreshStatus(episodeId, callback);
+        });
+    };
+    
+    var refreshStatus = this.refreshStatus = function (episodeId, callback) {
+        models.episode.get(episodeId, function(err, episode) {
+            if(err) return callback(err);
+            
+            models.show.get(episode.show_id, function(err, show) {
+                if(err) return callback(err);
+            
+                async.map(statusProvider, function(provider, cb) {
+                    provider.getUrl(show.name, episode.season, episode.episode, function(err, status) {
+                        if(err) return cb(err);
+                        //always insert
+                        //if(!status) return cb();
+                        models.episodeStatus.create({
+                            episode_id: episodeId,
+                            provider: provider.name,
+                            url: status ? status.url : null
+                        }, function(err, status) {
+                            if(err) return cb(err);
+                            cb(null, status);
+                        });
+                    });
+                }, function(err, res) {
+                    callback(err, res);
+                });
+            });
+        });
+    };
+    
     
     function loadProvider(type) {
         var res = [];
