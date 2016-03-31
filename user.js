@@ -1,8 +1,15 @@
 const express = require("express");
 const crypto = require("crypto");
 
+
 module.exports = function(config) {
     var user = express.Router();
+    
+    function hashPassword(pw) {
+        var hash = crypto.createHmac("sha256", config.secret);
+        hash.update(pw);
+        return hash.digest("hex");
+    }
 
     //login
     user.post('/login', function(req, res) {
@@ -12,11 +19,10 @@ module.exports = function(config) {
                 username: req.session.user.name
             });
         }
-        var hash = crypto.createHash('sha256');
-        hash.update(req.body.password);
+        
         req.models.user.one({
             name: req.body.username,
-            password: hash.digest("hex")
+            password: hashPassword(req.body.password)
         }, function(err, result) {
             if (err) return res.json({
                 status: 'ERR',
@@ -105,12 +111,11 @@ module.exports = function(config) {
 
     //register new acc and login
     user.post('/register', function(req, res) {
-        var hash = crypto.createHash('sha256');
-        hash.update(req.body.password);
+
         req.models.user.create({
             user_id: 0,
             name: req.body.username,
-            password: hash.digest("hex")
+            password: hashPassword(req.body.password)
         }, function(err, result) {
             if (err) {
                 if (err.code == 'ER_DUP_ENTRY')

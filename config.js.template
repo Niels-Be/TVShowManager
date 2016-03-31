@@ -1,10 +1,12 @@
 module.exports = {
   session: {
-      secret: 'change me'
+      secret: 'change me',
+      resave: false,
+      saveUninitialized: false 
   },
   
   user: {
-      
+      secret: 'change me to something else'
   },
   
   show: {
@@ -24,6 +26,6 @@ module.exports = {
     }
   },
   
-  databaseUrl: 'mysql://user:pass@host/db'
+  databaseUrl: 'sqlite://tvshowmanager.db'
     
 };

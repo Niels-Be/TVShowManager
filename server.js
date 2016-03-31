@@ -129,6 +129,6 @@ api.use('/show/', show(config.show));
 app.use('/', express.static('public'));
 app.use('/api/v1/', api);
 
-app.listen(process.env.PORT, process.env.IP, function () {
+app.listen(process.env.PORT || 3000, process.env.IP || '0.0.0.0', function () {
   console.log('Server listen on '+process.env.IP+':'+process.env.PORT);
 });
