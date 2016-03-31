@@ -140,6 +140,9 @@ module.exports = function(config, models) {
     function loadProvider(type) {
         var res = [];
         for(var key in config[type]) {
+            //disable a Provider by setting it to false
+            if(!config[type][key]) continue;
+            
             var provider = null;
             try {
                 provider = require("./provider/"+key);

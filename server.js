@@ -33,7 +33,7 @@ app.use(orm.express(config.databaseUrl, {
         
         models.userToken = db.define("user_token", {
             user_id: {type: 'integer', key: true},
-            token: String
+            token: {type: 'text', key: true}
         });
         //models.userToken.hasOne('user', models.user, { reverse: "tokens", required: true });
         //models.user.hasMany("tokens", {}, {token: {type: 'text', key: true}}, {key: true, required: true, reverse: "user"});
