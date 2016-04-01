@@ -6,6 +6,8 @@ const orm = require("orm");
 orm.settings.set("properties.primary_key", "{name}_id");
 orm.settings.set("properties.association_key", "{field}");
 orm.settings.set("properties.required", true);
+orm.settings.set("connection.pool", true);
+orm.settings.set("connection.debug", true);
 
 const show = require("./show.js");
 const user = require("./user.js");

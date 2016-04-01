@@ -22,7 +22,8 @@ module.exports = function(config) {
         
             var shows = [];
             async.each(userShows, function(show, callback) {
-                req.showProvider.get(show.show_id, req.session.user, function(err, show) {
+                //req.showProvider.get(show.show_id, req.session.user, function(err, show) {
+                req.models.show.get(show.show_id, function(err, show) {
                     if(err) return callback(err);
                     shows.push(show);
                     callback();
@@ -31,6 +32,7 @@ module.exports = function(config) {
                 if(err) return res.json({status: 'ERR', err: err, msg: err.message});
                 res.json({status: 'OK', shows: shows});
             });
+
         });
     });
     

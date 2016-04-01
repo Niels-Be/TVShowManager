@@ -204,12 +204,6 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 		var statusTimer;
 		this.update_status = function(data) {
 			if (data) {
-				this.seasons = [];
-				for (var i in data.episodes) {
-					if (!this.seasons[data.episodes[i].season])
-						this.seasons[data.episodes[i].season] = [];
-					this.seasons[data.episodes[i].season][data.episodes[i].episode] = data.episodes[i];
-				}
 
 				this.image = data.image;
 				this.name = data.name;
@@ -223,6 +217,27 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 					this.last_episode = data.last_episode;
 				if (data.favourite)
 					this.favourite = !!data.favourite;
+					
+				this.seasons = [];
+				if(data.episodes) {
+					for (var i in data.episodes) {
+						if (!this.seasons[data.episodes[i].season])
+							this.seasons[data.episodes[i].season] = [];
+						this.seasons[data.episodes[i].season][data.episodes[i].episode] = data.episodes[i];
+					}
+				} else {
+					var me = this;
+					this.loading = true;
+					ShowQuery.showinfo(this.id).success(function(data) {
+						if (data.status == "OK")
+							me.update_status(data.show);
+						else
+							console.error(data.msg, data.err);
+		
+						me.loading = false;
+					});
+					return;
+				}
 
 				if (this.status == 'Disabled') return;
 			}

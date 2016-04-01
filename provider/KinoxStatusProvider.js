@@ -45,7 +45,7 @@ function getShowUrl(show, callback) {
             });
             if(res.length == 0) {
                 console.log("No Show found", show, mayres);
-                return callback(new Error("Show not found"));
+                return callback(Error("Show '"+show+"' not found"));
             }
             if(res.length > 1) 
                 console.log("Multiple Shows found", res);
