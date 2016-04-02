@@ -64,7 +64,7 @@ function getEpisodeUrl(showUrl, season, episode, callback) {
     request("http://kinox.to/aGET/MirrorByEpisode/?Addr="+name+"&Season="+season+"&Episode="+episode, function(err, responde, body) {
         if(err) return callback(err);
         if(body.length > 0)
-            return callback(null, {url: "http://kinox.to/"+showUrl});
+            return callback(null, {url: "http://kinox.to"+showUrl});
         return callback();
     });
 }
