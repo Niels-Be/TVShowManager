@@ -49,6 +49,24 @@ The connection string looks like: protocol://username:password@host/database
 3. Modify the settings to match your Database server and your API key
 
 
+### Provider
+Providers are plugins that can be enabled and disabled in the config.
+In general they provide all the data.
+
+Checkout [Providers](Providers.md) to learn how to write your own Provider.
+
+There should always be at leaset one Search and one Metadata Provider enabled.
+
+##### Search
+- Imdb
+
+##### Metadata
+- TheTvDb
+
+##### Status
+- Movie4k
+- Kinox
+
 ## TODO:
 - Show updates should be queued and run in background
 - Archiv insted of disable
