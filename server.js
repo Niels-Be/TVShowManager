@@ -2,104 +2,19 @@ const express = require("express");
 const cookieParser = require('cookie-parser')
 const session = require("express-session")
 const bodyParser = require('body-parser');
-const orm = require("orm");
-orm.settings.set("properties.primary_key", "{name}_id");
-orm.settings.set("properties.association_key", "{field}");
-orm.settings.set("properties.required", true);
-orm.settings.set("connection.pool", true);
-orm.settings.set("connection.debug", true);
 
-const show = require("./show.js");
-const user = require("./user.js");
-const config = require("./config.js");
+const show = require("./show");
+const user = require("./user");
+const config = require("./config");
+const models = require("./models")
 
 var app = express();
-
-app.use(cookieParser());
-app.use(session(config.session));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(orm.express(config.databaseUrl, {
-    define: function (db, models, next) {
-
-        
-        models.user = db.define("user", {
-            user_id: {type: 'serial', key: true},
-            name: {type: 'text', unique: true},
-            password: String
-        }, {
-            validations: {
-                name: orm.enforce.security.username({length: 3}, "No valid username")
-            }
-        });
-        
-        models.userToken = db.define("user_token", {
-            user_id: {type: 'integer', key: true},
-            token: {type: 'text', key: true}
-        });
-        //models.userToken.hasOne('user', models.user, { reverse: "tokens", required: true });
-        //models.user.hasMany("tokens", {}, {token: {type: 'text', key: true}}, {key: true, required: true, reverse: "user"});
-        
-        models.show = db.define("show", {
-            show_id: {type: 'integer', key: true},
-            imdb_id: {type: 'text', unique: true},
-            name: String,
-            genre: {type: 'text', required: false},
-            started: {type: 'date', time: false, required: false},
-            ended: {type: 'date', time: false, required: false},
-            air_day: {type: 'text', required: false},
-            air_time: {type: 'text', required: false},
-            status: String,
-            image: {type: 'text', required: false},
-            seasons: {type: 'integer', required: false},
-            updated_at: {type: 'date', time: true}
-        });
-        
-        models.userShows = db.define("user_shows", {
-           user_id: {type: 'integer', key: true},
-           show_id: {type: 'integer', key: true},
-           last_season: {type: 'integer', defaultValue: 0},
-           last_episode: {type: 'integer', defaultValue: 0},
-           enabled: {type: 'boolean', defaultValue: true},
-           favourite: {type: 'boolean', defaultValue: false}
-        });
-        //models.userShows.hasOne('user', models.user, { reverse: "shows" });
-        //models.userShows.hasOne('show', models.show);
-        
-        /*models.user.hasMany('shows', models.show, {
-            last_season: {type: 'integer', defaultValue: 0},
-            last_episode: {type: 'integer', defaultValue: 0},
-            enabled: {type: 'boolean', defaultValue: true},
-            favourite: {type: 'boolean', defaultValue: false}
-        }, { reverse: "users", key: true, required: true });*/
-        
-        models.episode = db.define("episode", {
-            episode_id: {type: 'integer', key: true},
-            season: {type: 'integer'/*, key: true*/},
-            episode: {type: 'integer'/*, key: true*/},
-            title: String,
-            airdate: {type: 'date', time: false}
-        });
-        models.episode.hasOne('show', models.show, { reverse: "episodes", required: true});
-        
-        models.episodeStatus = db.define("episode_status", {
-            episode_id: {type: 'integer', key: true},
-            provider: {type: 'text', key: true},
-            url: {type: 'text', required: false}
-        });
-        //models.episode.hasOne('episode', models.episode, { reverse: "status" });
-        //models.episodeStatus.addProperty({name: "episode_id", type: 'integer', key: true});
-        
-        db.sync(function(err) {
-            if(err) throw err;
-            models.episodeStatus.find({url: null}).remove(function() {});
-            next();
-        });
-    }
-}));
-
-
 var api = express.Router();
+
+api.use(cookieParser());
+api.use(session(config.session));
+api.use(bodyParser.json());
+api.use(bodyParser.urlencoded({ extended: true }));
 
 
 /*
@@ -131,6 +46,15 @@ api.use('/show/', show(config.show));
 app.use('/', express.static('public'));
 app.use('/api/v1/', api);
 
-app.listen(process.env.PORT || 3000, process.env.IP || '0.0.0.0', function () {
-  console.log('Server listen on '+process.env.IP+':'+process.env.PORT);
+models.sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
+.then(function(){
+    return models.sequelize.sync({ force: false });
+})
+.then(function(){
+    return models.sequelize.query('SET FOREIGN_KEY_CHECKS = 1')
+})
+.then(function () { 
+    app.listen(process.env.PORT || 3000, process.env.IP || '0.0.0.0', function () {
+      console.log('Server listen on '+process.env.IP+':'+process.env.PORT);
+    });
 });

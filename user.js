@@ -1,6 +1,8 @@
 const express = require("express");
 const crypto = require("crypto");
 
+const models = require("./models")
+
 
 module.exports = function(config) {
     var user = express.Router();
@@ -9,6 +11,11 @@ module.exports = function(config) {
         var hash = crypto.createHmac("sha256", config.secret);
         hash.update(pw);
         return hash.digest("hex");
+    }
+    
+    function errorHandler(res, err) {
+        console.warn(err);
+        res.json({ status: 'ERR', err: err, msg: err.message });
     }
 
     //login
@@ -20,43 +27,36 @@ module.exports = function(config) {
             });
         }
         
-        req.models.user.one({
-            name: req.body.username,
-            password: hashPassword(req.body.password)
-        }, function(err, result) {
-            if (err) return res.json({
-                status: 'ERR',
-                err: err,
-                msg: err.message
-            });
-            if (!result) return res.json({
+        models.User.findOne({
+            attributes: { exclude: ['password'] },
+            where: {
+                name: req.body.username,
+                password: hashPassword(req.body.password)
+            }
+        }).then(function(user) {
+            if (!user) return res.json({
                 status: 'ERR',
                 msg: "Username or Password not found"
             });
 
-            req.session.user = result;
+            req.session.user = user;
 
             if (req.body.stay) {
                 var hash2 = crypto.createHash('sha256');
-                hash2.update("Token:" + result.user_id + result.name + Math.random() + "@" + new Date().getTime());
+                hash2.update("Token:" + user.id + user.name + Math.random() + "@" + new Date().getTime());
                 var token = hash2.digest("hex");
-                req.models.userToken.create({
-                    user_id: result.user_id,
+                models.UserToken.create({
+                    user_id: user.id,
                     token: token
-                }, function(err) {
-                    if (err) return res.json({
-                        status: 'ERR',
-                        err: err,
-                        msg: err.message
-                    });
+                }).then(function() {
                     res.cookie('token', token, {
                         maxAge: 2592000000
                     });
                     res.json({
                         status: 'OK',
-                        username: result.name
+                        username: user.name
                     });
-                });
+                }, errorHandler.bind(this, res));
             }
             else {
                 res.json({
@@ -64,7 +64,7 @@ module.exports = function(config) {
                     username: req.session.user.name
                 });
             }
-        });
+        }, errorHandler.bind(this, res));
     });
 
     //login with token
@@ -75,64 +75,54 @@ module.exports = function(config) {
                 username: req.session.user.name
             });
         }
-        //return res.json({status: 'ERR', msg: 'Not logged in'});
-        req.models.userToken.one({
-            token: req.cookies.token
-        }, function(err, result) {
-            if (err) return res.json({
-                status: 'ERR',
-                err: err,
-                msg: err.message
-            });
-            if (!result) return res.json({
+        
+        models.User.findOne({
+            attributes: { exclude: ['password'] },
+            include: [{
+                model: models.UserToken,
+                where: { token: req.cookies.token }
+            }]
+        }).then(function(user) {
+            if (!user) return res.json({
                 status: 'ERR',
                 msg: "Token not found"
             });
 
-            req.models.user.get(result.user_id, function(err, user) {
-                if (err) return res.json({
-                    status: 'ERR',
-                    err: err,
-                    msg: err.message
-                });
-                if (user) {
-                    req.session.user = user;
-                    res.cookie('token', req.cookies.token, {
-                        maxAge: 2592000000
-                    });
-                    res.json({
-                        status: 'OK',
-                        username: user.name
-                    });
-                }
+            req.session.user = user;
+            res.cookie('token', req.cookies.token, {
+                maxAge: 2592000000
             });
-        });
+            res.json({
+                status: 'OK',
+                username: user.name
+            });
+
+        }, errorHandler.bind(this, res));
     });
 
     //register new acc and login
     user.post('/register', function(req, res) {
 
-        req.models.user.create({
+        models.User.create({
             user_id: 0,
             name: req.body.username,
             password: hashPassword(req.body.password)
-        }, function(err, result) {
-            if (err) {
-                if (err.code == 'ER_DUP_ENTRY')
-                    return res.json({
-                        status: 'ERR',
-                        msg: "Username already exists"
-                    });
-                return res.json({
-                    status: 'ERR',
-                    err: err,
-                    msg: err.message
-                });
-            }
+        }).then(function(result) {
             req.session.user = result;
             res.json({
                 status: 'OK',
                 username: result.name
+            });
+        }, function(err) {
+            if (err.code == 'ER_DUP_ENTRY')
+                return res.json({
+                    status: 'ERR',
+                    msg: "Username already exists"
+                });
+            return res.json({
+                status: 'ERR',
+                err: err,
+                msg: err.message
             });
         });
     });
@@ -140,21 +130,18 @@ module.exports = function(config) {
     //logout
     user.post('/logout', function(req, res) {
         if (req.session.user) {
-            req.models.userToken.find({
-                user_id: req.session.user.user_id
-            }).remove(function(err) {
-                if (err) return res.json({
-                    status: 'ERR',
-                    err: err,
-                    msg: err.message
-                });
+            models.UserToken.destroy({
+                where: {
+                    user_id: req.session.user.id
+                }
+            }).then(function() {
                 req.session.destroy(function() {
                     res.clearCookie('token');
                     res.json({
                         status: 'OK'
                     });
                 });
-            });
+            }, errorHandler.bind(this, res));
         }
         else {
             req.session.destroy(function() {

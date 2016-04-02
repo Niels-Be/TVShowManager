@@ -255,7 +255,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 							if (statusTimer)
 								$timeout.cancel(statusTimer);
 							statusTimer = $timeout(function() {
-								ShowQuery.showStatus(nextep.episode_id).then(function(data) {
+								ShowQuery.showStatus(nextep.id).then(function(data) {
 									data = data.data;
 									if (data.status == "OK")
 										nextep.status = data.res;
@@ -303,7 +303,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 			});
 		};
 		if (typeof id == 'object') {
-			this.id = id.show_id;
+			this.id = id.id;
 			this.update_status(id);
 		}
 		else

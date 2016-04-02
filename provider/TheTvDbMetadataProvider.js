@@ -24,7 +24,7 @@ module.exports = function(options) {
                     if (err) return callback(err);
                     data.Series = data.Data.Series;
                     var show = {
-                        show_id: data.Series.id,
+                        id: data.Series.id,
                         imdb_id: data.Series.IMDB_ID,
                         name: data.Series.SeriesName,
                         genre: data.Series.Genre,
@@ -34,15 +34,13 @@ module.exports = function(options) {
                         air_time: data.Series.Airs_Time,
                         status: data.Series.Status,
                         image: data.Series.poster ? 'http://thetvdb.com/banners/_cache/'+data.Series.poster : null,
-                        seasons: null,
-                        updated_at: new Date(),
                         episodes: []
                     };
                     data.Episode = Array.isArray(data.Data.Episode) ? data.Data.Episode : [data.Data.Episode];
                     for(var i in data.Episode) {
                         var ep = data.Episode[i];
                         show.episodes.push({
-                            episode_id: ep.id,
+                            id: ep.id,
                             season: ep.SeasonNumber, 
                             episode: ep.EpisodeNumber,
                             title: ep.EpisodeName ? ep.EpisodeName : 'TBA',

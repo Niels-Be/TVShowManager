@@ -21,52 +21,35 @@ module.exports = function(config, models) {
         }
         
         
-        var idQuery = {show_id: id};
+        var idQuery = {id: id};
         if(type == "imdb") 
             idQuery = {imdb_id: id};
             
-        models.show.one(idQuery, function(err, show) {
-            if(err) return callback(err);
-            if(show) {
-                async.series([
-                    function(cb) {
-                        if(user) {
-                            models.userShows.one({user_id: user.user_id, show_id: show.show_id}, function(err, userShow) {
-                                if(err) return cb(err);
-                                for(var key in userShow) {
-                                    if(key == "user_id" || key == "show_id") continue;
-                                    show[key] = userShow[key];
-                                }
-                                cb();
-                            });
-                        } else
-                            cb();
-                    },
-                    function(cb) {
-                        show.getEpisodes(function(err, episodes) {
-                            cb(err);
-                        });
-                    }
-                ], function(err) {
-                    if(err) return callback(err);
-                    callback(null, show);
-                });
-                
-                
-            } else {
-                metadataProvider[0].fetch(id, type, function(err, show) {
-                    if(err) return callback(err);
-                    if(show) {
-                        models.show.create(show, callback);
-                    }
-                    else
-                        callback(new Error("Show not found"));
-                });
-            }
-        });
+        var userQuery = null;
+        if(user)
+            userQuery = {
+                model: models.User,
+                where: { id: user.id }
+            };
+            
+        models.Show.findOne({
+            where: idQuery, 
+            include: [
+                userQuery,
+                {
+                    model: models.Episode,
+                    as: 'episodes'
+                }
+            ]
+        }).then(function(show) {
+            if(show) return callback(null, show);
+
+            refresh(id, type, callback);
+            
+        }, callback);
     };
     
-    this.refresh = function(id, type, callback) {
+    var refresh = this.refresh = function(id, type, callback) {
         if(!callback) {
             if(type) {
                 callback = type;
@@ -77,21 +60,19 @@ module.exports = function(config, models) {
         
         metadataProvider[0].fetch(id, type, function(err, show) {
             if(err) return callback(err);
-            if(!show) return callback(new Error("Show not found"));
-            models.show.one({show_id: show.show_id}, function(err, old) {
-                if(err) return callback(err);
-                if(old) {
-                    old.getEpisodes().remove(function(err) {
-                        if(err) return callback(err);
-                        old.remove(function(err) {
-                            if(err) return callback(err);
-                            models.show.create(show, callback); 
-                        });
+            if(show) {
+                models.Show.upsert(show).then(function(created) {
+                    async.each(show.episodes, function(elem, cb) { 
+                        elem.show_id = show.id; 
+                        models.Episode.upsert(elem).then(cb.bind(null, null), cb);
+                    }, function(err) {
+                        callback(err, show);
                     });
-                } else {
-                    models.show.create(show, callback);
-                }
-            });
+                    
+                },callback);
+            }
+            else
+                callback(new Error("Show not found"));
         });
     };
     
@@ -100,15 +81,35 @@ module.exports = function(config, models) {
     };
     
     this.status = function(episodeId, callback) {
-        models.episodeStatus.find({episode_id: episodeId}, function(err, stati) {
-            if(err) return callback(err);
-            if(stati && stati.length > 0) return callback(null, stati);
+        models.EpisodeStatus.findAll({where: {episode_id: episodeId}}).then(function(status) {
+            if(status && status.length > 0) return callback(null, status);
             
             refreshStatus(episodeId, callback);
-        });
+        }, callback);
     };
     
     var refreshStatus = this.refreshStatus = function (episodeId, callback) {
+        models.Episode.findOne({
+            where: { id: episodeId },
+            include: [models.Show]
+        }).then(function(episode) {
+            async.map(statusProvider, function(provider, cb) {
+                provider.getUrl(episode.Show.name, episode.season, episode.episode, function(err, status) {
+                    if(err) return cb(err);
+                    var epStatus = {
+                        episode_id: episodeId,
+                        provider: provider.name,
+                        url: status ? status.url : null
+                    };
+                    models.EpisodeStatus.upsert(epStatus).then(function() {
+                        cb(null, epStatus);
+                    }, cb);
+                });
+            }, function(err, res) {
+                callback(err, res);
+            });
+        });
+        /*
         models.episode.get(episodeId, function(err, episode) {
             if(err) return callback(err);
             
@@ -133,7 +134,7 @@ module.exports = function(config, models) {
                     callback(err, res);
                 });
             });
-        });
+        });*/
     };
     
     

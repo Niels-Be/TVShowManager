@@ -36,7 +36,7 @@ Alternatively you can run this by your self.
 6. Start the server with `node server.js`
 
 ##### Database
-You can chose any database server you want as long there is a adapter for [node-orm](https://github.com/dresende/node-orm2)
+You can chose any database you want as long there is a adapter for [sequelize](https://github.com/sequelize/sequelize)
 
 By default it uses a SQLlite database which requires no further setup. But you probably want to change that.
 The connection string looks like: protocol://username:password@host/database

@@ -24,9 +24,10 @@
     "express": "^4.13.4",
     "express-session": "^1.13.0",
     "jsdom": "^8.2.0",
+    "lodash": "^4.7.0",
     "mysql": "^2.10.2",
-    "orm": "^2.1.30",
     "request": "^2.69.0",
+    "sequelize": "^3.20.0",
     "xml2js": "^0.4.16"
   }
 }
