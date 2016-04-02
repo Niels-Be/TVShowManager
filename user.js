@@ -39,7 +39,10 @@ module.exports = function(config) {
                 msg: "Username or Password not found"
             });
 
-            req.session.user = user;
+            req.session.user = {
+                id: user.id,
+                name: user.name
+            }
 
             if (req.body.stay) {
                 var hash2 = crypto.createHash('sha256');
@@ -75,6 +78,12 @@ module.exports = function(config) {
                 username: req.session.user.name
             });
         }
+        if(!req.cookies.token) {
+            return res.json({
+                status: 'ERR',
+                msg: "Token not set"
+            });
+        }
         
         models.User.findOne({
             attributes: { exclude: ['password'] },
@@ -83,12 +92,18 @@ module.exports = function(config) {
                 where: { token: req.cookies.token }
             }]
         }).then(function(user) {
-            if (!user) return res.json({
-                status: 'ERR',
-                msg: "Token not found"
-            });
+            if (!user) {
+                res.clearCookie('token');
+                return res.json({
+                    status: 'ERR',
+                    msg: "Session expired"
+                });
+            }
 
-            req.session.user = user;
+            req.session.user = {
+                id: user.id,
+                name: user.name
+            };
             res.cookie('token', req.cookies.token, {
                 maxAge: 2592000000
             });
@@ -104,14 +119,16 @@ module.exports = function(config) {
     user.post('/register', function(req, res) {
 
         models.User.create({
-            user_id: 0,
             name: req.body.username,
             password: hashPassword(req.body.password)
-        }).then(function(result) {
-            req.session.user = result;
+        }).then(function(user) {
+            req.session.user = {
+                id: user.id,
+                name: user.name
+            };
             res.json({
                 status: 'OK',
-                username: result.name
+                username: user.name
             });
         }, function(err) {
             if (err.code == 'ER_DUP_ENTRY')
