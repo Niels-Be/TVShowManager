@@ -36,7 +36,7 @@ module.exports = function(config) {
                 delete tmp.Users;
                 callback(null, tmp);
             }, function(err, shows) {
-                if(err) return res.json({status: 'ERR', err: err, msg: err.message});
+                if(err) return errorHandler(res, err);
                 res.json({status: 'OK', shows: shows});
             });
 
@@ -51,7 +51,7 @@ module.exports = function(config) {
             async.each(results, function(elem, cb) {
                 showProvider.get(elem.show_id, cb);
             }, function(err) {
-                if(err) return res.json({status: 'ERR', err: err, msg: err.message});
+                if(err) return errorHandler(res, err);
                 res.json({status: 'OK', count: results.length});
             });
         }, errorHandler.bind(this, res));
@@ -60,7 +60,7 @@ module.exports = function(config) {
     //get show info, optionaly including user info if logged in
     show.get('/:id', function(req, res) {
         showProvider.get(req.params.id, req.session.user, function(err, show) {
-            if(err) return res.json({status: 'ERR', err: err, msg: err.message});
+            if(err) return errorHandler(res, err);
             res.json({status: 'OK', show: show});
         });
     });
@@ -69,7 +69,7 @@ module.exports = function(config) {
     show.put('/:id', function(req, res) {
         //if(!req.session.user) return res.json({status: 'ERR', msg: "Not logged in"});
         showProvider.get({id: req.params.id, type: "imdb"}, req.session.user, function(err, show) {
-            if(err) return res.json({status: 'ERR', err: err, msg: err.message});
+            if(err) return errorHandler(res, err);
             if(req.session.user) {
                 models.UserShow.create({
                     user_id: req.session.user.id,
@@ -122,7 +122,7 @@ module.exports = function(config) {
     //refresh db of show sync
     show.post('/:id/refresh', function(req, res) {
         showProvider.refresh(req.params.id, function(err, show) {
-            if(err) return res.json({status: 'ERR', err: err, msg: err.message});
+            if(err) return errorHandler(res, err);
             res.json({status: 'OK', show: show});
         });
     });
@@ -130,7 +130,7 @@ module.exports = function(config) {
     //get status of episode
     show.get('/episode/:id', function(req, res) {
         showProvider.status(req.params.id, function (err, status) {
-            if(err) return res.json({status: 'ERR', err: err, msg: err.message});
+            if(err) return errorHandler(res, err);
             var result = {};
             for(var i in status) {
                 if(status[i]) {
@@ -148,7 +148,7 @@ module.exports = function(config) {
     //search for show
     show.get('/search/:name', function(req, res) {
         showProvider.search(req.params.name, function(err, shows) {
-            if(err) return res.json({status: 'ERR', err: err, msg: err.message});
+            if(err) return errorHandler(res, err);
             res.json({status: 'OK', shows: shows});
         });
     });

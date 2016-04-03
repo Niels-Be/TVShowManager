@@ -1,4 +1,5 @@
-var jsdom = require("jsdom");
+'use strict';
+/*var jsdom = require("jsdom");
 var request = require("request")
 
 //Kinox: check:   http://kinox.to/aGET/MirrorByEpisode/?Addr=Arrow-1&Season=1&Episode=15
@@ -75,4 +76,68 @@ function escapeShowName(name) {
     toLowerCase().
     replace(/ |\-/g, "_").
     replace(/\(|\)|\:|\.|\;|\,|\'\"\+|\#/g, "");
-}
+}*/
+
+
+const request = require("request");
+const SimpleStatusProvider = require("./StatusProvider").SimpleStatusProvider;
+
+module.exports = class KinoxStatusProvider extends SimpleStatusProvider {
+    constructor(config) {
+        super(config);
+        this.name = "kinox";
+    }
+    
+
+    buildSearchUrl(show) { 
+        return "http://kinox.to/Search.html?q="+encodeURI(show.name);
+    }
+
+    findShowUrl(window, $, show) {
+        return new Promise(function(resolve, reject) {
+            var showName = KinoxStatusProvider.escapeShowName(show.name);
+            var res = [];
+            $("#RsltTableStatic tr").each(function(index, elem) {
+                if($("img[alt=type]", elem).attr("src") == "/cs/themes/default/types/series.png" && $("img[alt=language]", elem).attr("src") == "/gr/sys/lng/2.png") {
+                    var showElem = $(".Title a",elem);
+                    if(showName == KinoxStatusProvider.escapeShowName(showElem.text()))
+                        res.push({name: showElem.text(), url: showElem.attr("href")});
+                }
+            });
+            if(res.length > 1) 
+                console.log("Multiple Shows found", res);
+            if(res.length > 0) resolve("http://kinox.to"+res[0].url);
+            else resolve(false);
+        });
+    }
+
+    getEpisodeUrl(show, season, episode) {
+        var me = this;
+        if(!me.cache[show.id]) {
+            return me.getShowUrl(show).then(function() { 
+                return me.getEpisodeUrl(show, season, episode);
+            });
+        }
+        
+        return new Promise(function(resolve, reject) {
+            var match = /^.*\/(.*)\.html$/.exec(me.cache[show.id].url);
+            if(!match) return reject(new Error("Corrupted Show Url"));
+            
+            var name = match[1];
+            request("http://kinox.to/aGET/MirrorByEpisode/?Addr="+name+"&Season="+season+"&Episode="+episode, function(err, responde, body) {
+                if(err) return reject(err);
+                if(body.length > 0)
+                    return resolve(me.cache[show.id].url);
+                return resolve(false);
+            });
+        });
+    }
+    
+    static escapeShowName(name) {
+       return name.
+        toLowerCase().
+        replace(/ |\-/g, "_").
+        replace(/\(|\)|\:|\.|\;|\,|\'\"\+|\#/g, "");
+    }
+    
+};

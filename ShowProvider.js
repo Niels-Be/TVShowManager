@@ -94,47 +94,20 @@ module.exports = function(config, models) {
             include: [models.Show]
         }).then(function(episode) {
             async.map(statusProvider, function(provider, cb) {
-                provider.getUrl(episode.Show.name, episode.season, episode.episode, function(err, status) {
-                    if(err) return cb(err);
+                provider.getUrl(episode.Show, episode.season, episode.episode).then(function(status) {
                     var epStatus = {
                         episode_id: episodeId,
                         provider: provider.name,
-                        url: status ? status.url : null
+                        url: status ? status : null
                     };
                     models.EpisodeStatus.upsert(epStatus).then(function() {
                         cb(null, epStatus);
                     }, cb);
-                });
+                }, cb);
             }, function(err, res) {
                 callback(err, res);
             });
         });
-        /*
-        models.episode.get(episodeId, function(err, episode) {
-            if(err) return callback(err);
-            
-            models.show.get(episode.show_id, function(err, show) {
-                if(err) return callback(err);
-            
-                async.map(statusProvider, function(provider, cb) {
-                    provider.getUrl(show.name, episode.season, episode.episode, function(err, status) {
-                        if(err) return cb(err);
-                        //always insert
-                        //if(!status) return cb();
-                        models.episodeStatus.create({
-                            episode_id: episodeId,
-                            provider: provider.name,
-                            url: status ? status.url : null
-                        }, function(err, status) {
-                            if(err) return cb(err);
-                            cb(null, status);
-                        });
-                    });
-                }, function(err, res) {
-                    callback(err, res);
-                });
-            });
-        });*/
     };
     
     
@@ -148,9 +121,11 @@ module.exports = function(config, models) {
             try {
                 provider = require("./provider/"+key);
             } catch(e) {
+                console.log(e, '\n', e.stack.split("\n"));
                 try {
                     provider = require(key);
                 } catch(e) {
+                    console.log(e, '\n', e.stack.split("\n"));
                     provider = global[key];
                 } 
             } 

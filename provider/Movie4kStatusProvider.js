@@ -1,4 +1,5 @@
-var jsdom = require("jsdom");
+'use strict';
+/*var jsdom = require("jsdom");
 
 module.exports = function(config) {
     this.name ="movie4k";
@@ -77,7 +78,59 @@ module.exports = function(config) {
         }
     }
     
-    function escapeShowName(name) {
+};
+
+*/
+
+const SimpleStatusProvider = require("./StatusProvider").SimpleStatusProvider;
+
+module.exports = class Movie4kStatusProvider extends SimpleStatusProvider {
+    constructor(config) {
+        super(config);
+        this.name = "movie4k";
+    }
+    
+
+    buildSearchUrl(show) { 
+        return "https://www.movie4k.to/movies.php?list=search&search="+encodeURI(show.name);
+    }
+
+    findShowUrl(window, $, show) {
+        return new Promise(function(resolve, reject) {
+            var showName = Movie4kStatusProvider.escapeShowName(show.name);
+            var res = [];
+            $("#tablemoviesindex td > a").each(function(index, elem) {
+                var url = $(elem).attr('href');
+                var match =/^([\w\-]+)-watch-tvshow-(\d+)\.html$/.exec(url);
+                if(match) {
+                    if(showName == Movie4kStatusProvider.escapeShowName(match[1]))
+                        res.push({name: match[1], url: url});
+                }
+            });
+            if(res.length > 1) 
+                console.log("Multiple Shows found", res);
+            if(res.length == 0) return resolve(false);
+            //console.log(show.name, res[0].url);
+            resolve("https://www.movie4k.to/" + res[0].url);
+        });
+    }
+
+    findEpisodeUrl(window, $, show, season, episode) {
+        return new Promise(function(resolve, reject) {
+            var found = false;
+            $("#episodediv"+season+" option").each(function(index, elem) {
+                elem = $(elem);
+                 if(elem.text() == 'Episode '+episode) {
+                     found = 'https://www.movie4k.to/'+elem.attr('value');
+                     return false;
+                 }
+            });
+            //console.log(show.name, found);
+            resolve(found);
+        });
+    }
+    
+    static escapeShowName(name) {
        return name.
         toLowerCase().
         replace(/ |\-/g, "_").

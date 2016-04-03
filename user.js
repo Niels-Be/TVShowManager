@@ -131,16 +131,12 @@ module.exports = function(config) {
                 username: user.name
             });
         }, function(err) {
-            if (err.code == 'ER_DUP_ENTRY')
+            if (err.name == 'SequelizeUniqueConstraintError')
                 return res.json({
                     status: 'ERR',
                     msg: "Username already exists"
                 });
-            return res.json({
-                status: 'ERR',
-                err: err,
-                msg: err.message
-            });
+            errorHandler(res,err);
         });
     });
 
