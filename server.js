@@ -53,9 +53,6 @@ models.sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
 .then(function(){
     return models.sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
 })
-.then(function(){
-    return models.EpisodeStatus.destroy({where: {url: null}});
-})
 .then(function () { 
     app.listen(process.env.PORT || 3000, process.env.IP || '0.0.0.0', function () {
       console.log('Server listen on '+process.env.IP+':'+process.env.PORT);

@@ -1,4 +1,5 @@
 const async = require("async");
+const _ = require('lodash/core');
 
 module.exports = function(config, models) {
     var searchProvider = loadProvider("search");
@@ -82,9 +83,20 @@ module.exports = function(config, models) {
     
     this.status = function(episodeId, callback) {
         models.EpisodeStatus.findAll({where: {episode_id: episodeId}}).then(function(status) {
-            if(status && status.length > 0) return callback(null, status);
-            
-            refreshStatus(episodeId, callback);
+            if(status && status.length == statusProvider.length) {
+                //refreshStatus if there is at least one provider that is not available and was last updated more then a day ago
+                async.filter(status, function(elem, cb) {
+                    cb(null, elem.url == null && (elem.updated_at.getTime()) < (new Date().getTime() - config.cacheTime));
+                }, function(err, res) {
+                    if(err) return callback(err);
+                    if(res.length > 0)
+                        refreshStatus(episodeId, callback);
+                    else
+                        callback(null, status);
+                });
+            }
+            else //Never fetched staus -> insert it
+                refreshStatus(episodeId, callback);
         }, callback);
     };
     
@@ -131,7 +143,10 @@ module.exports = function(config, models) {
             } 
             if(!provider)
                 throw new Error("Could not find "+key+"; it may not be installed");
-            res.push(new provider(config[type][key]));
+                
+            var conf = typeof config[type][key] != "object" ? {} : config[type][key];
+            _.defaults(conf, {cacheTime: config.cacheTime});
+            res.push(new provider(conf));
         }
         return res;
     }

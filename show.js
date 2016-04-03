@@ -1,6 +1,5 @@
 const express = require("express");
 const async = require("async");
-const _ = require('lodash/core');
 
 const ShowProvider = require("./ShowProvider");
 const models = require("./models");
@@ -130,6 +129,24 @@ module.exports = function(config) {
     //get status of episode
     show.get('/episode/:id', function(req, res) {
         showProvider.status(req.params.id, function (err, status) {
+            if(err) return errorHandler(res, err);
+            var result = {};
+            for(var i in status) {
+                if(status[i]) {
+                    result[status[i].provider] = {};
+                    for(var key in status[i]) {
+                        if(key != "episode_id")
+                            result[status[i].provider][key] = status[i][key];
+                    }
+                }
+            }
+            res.json({status: 'OK', res: result});
+        });
+    });
+    
+    //refresh status of episode
+    show.post('/episode/:id/refresh', function(req, res) {
+        showProvider.refreshStatus(req.params.id, function (err, status) {
             if(err) return errorHandler(res, err);
             var result = {};
             for(var i in status) {

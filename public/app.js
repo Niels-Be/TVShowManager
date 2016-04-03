@@ -21,7 +21,9 @@ app.factory('ShowQuery', ['$http', '$timeout', '$q', function($http, $timeout, $
 			return $http.post("/api/v1/show/" + id + "/refresh");
 		};
 
-		this.showStatus = function(episodeId) {
+		this.showStatus = function(episodeId, refresh) {
+			if(refresh)
+				return $http.post("/api/v1/show/episode/" + episodeId + "/refresh");
 			return $http.get("/api/v1/show/episode/" + episodeId);
 		};
 
@@ -202,7 +204,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 		};
 
 		var statusTimer;
-		this.update_status = function(data) {
+		this.update_status = function(data, refreshed) {
 			if (data) {
 
 				this.image = data.image;
@@ -252,17 +254,17 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 				else if (nextdate <= now) {
 					this.status = 'Available';
 					if (!nextep.status) {
-							if (statusTimer)
-								$timeout.cancel(statusTimer);
-							statusTimer = $timeout(function() {
-								ShowQuery.showStatus(nextep.id).then(function(data) {
-									data = data.data;
-									if (data.status == "OK")
-										nextep.status = data.res;
-									else
-										console.error(data.msg, data.err);
-								});
-							}, 750);
+						if (statusTimer)
+							$timeout.cancel(statusTimer);
+						statusTimer = $timeout(function() {
+							ShowQuery.showStatus(nextep.id, refreshed).then(function(data) {
+								data = data.data;
+								if (data.status == "OK")
+									nextep.status = data.res;
+								else
+									console.error(data.msg, data.err);
+							});
+						}, 750);
 					}
 				}
 				else {
@@ -292,7 +294,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 			success(function(data, status, headers, config) {
 				//console.log(data);
 				if (data.status == "OK")
-					me.update_status(data.show);
+					me.update_status(data.show, true);
 				else
 					console.error(data.msg, data.err);
 

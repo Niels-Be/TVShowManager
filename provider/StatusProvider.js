@@ -100,7 +100,8 @@ exports.SimpleStatusProvider = class SimpleStatusProvider extends exports.Status
             });
         }
         var showCache = me.cache[show.id];
-        if(showCache.page) 
+        //Refresh cash if older then one day
+        if(showCache.page && showCache.updated_at.getTime() > (new Date().getTime() - me.config.cacheTime))
             return me.findEpisodeUrl(showCache.page, showCache.page.$, show, season, episode);
             
         return new Promise(function(resolve, reject) {
@@ -109,8 +110,10 @@ exports.SimpleStatusProvider = class SimpleStatusProvider extends exports.Status
                 ["http://code.jquery.com/jquery.min.js"],
                 function (err, window) {
                     if(err) return reject(err);
-                    if(!me.disableEpisodePageCache)
+                    if(!me.disableEpisodePageCache) {
                         showCache.page = window;
+                        showCache.updated_at = new Date();
+                    }
                     resolve(me.findEpisodeUrl(window, window.$, show, season, episode));
                 }
             );
