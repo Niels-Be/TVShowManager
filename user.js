@@ -14,7 +14,7 @@ module.exports = function(config) {
     }
     
     function errorHandler(res, err) {
-        console.warn(err);
+        console.warn(err.stack ? err.stack : err);
         res.json({ status: 'ERR', err: err, msg: err.message });
     }
 

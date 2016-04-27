@@ -136,6 +136,7 @@ module.exports = class KinoxStatusProvider extends SimpleStatusProvider {
     static escapeShowName(name) {
        return name.
         toLowerCase().
+        replace(/ ?\(\d+\)\s*$/, "").
         replace(/ |\-/g, "_").
         replace(/\(|\)|\:|\.|\;|\,|\'\"\+|\#/g, "");
     }

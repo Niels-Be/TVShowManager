@@ -46,6 +46,10 @@ api.use('/show/', show(config.show));
 app.use('/', express.static('public'));
 app.use('/api/v1/', api);
 
+app.on('error', function(err) {
+    console.warn(err);
+});
+
 models.sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
 .then(function(){
     return models.sequelize.sync({ force: false });

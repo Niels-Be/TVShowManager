@@ -81,7 +81,7 @@ exports.SimpleStatusProvider = class SimpleStatusProvider extends exports.Status
                         window.close();
                         if(!res) {
                             //console.log("No Show found", show.name);
-                            return reject(new Error("Show '"+show.name+"' not found"));
+                            return reject(new Error("Show '"+show.name+"' not found for "+me.name));
                         }
                         me.cache[show.id] = { url: res };
                         resolve(res);
