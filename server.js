@@ -47,18 +47,29 @@ app.use('/', express.static('public'));
 app.use('/api/v1/', api);
 
 app.on('error', function(err) {
-    console.warn(err);
+    console.warn("App Error: "+err.stack ? err.stack : err);
 });
+
+function SequelizeError(err) {
+    console.warn("Sequelize Main Error: "+err.stack ? err.stack : err);
+}
 
 models.sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
 .then(function(){
     return models.sequelize.sync({ force: false });
-})
+}, SequelizeError)
 .then(function(){
     return models.sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
-})
+}, SequelizeError)
 .then(function () { 
-    app.listen(process.env.PORT || 3000, process.env.IP || '0.0.0.0', function () {
+    var server = app.listen(process.env.PORT || 3000, process.env.IP || '0.0.0.0', function () {
       console.log('Server listen on '+process.env.IP+':'+process.env.PORT);
     });
-});
+    server.on('error', function(err) {
+        console.warn("Server Error: "+err.stack ? err.stack : err);
+    });
+    server.on('clientError', (err, socket) => {
+        console.warn("Client Error: "+err.stack ? err.stack : err);
+        socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+    });
+}, SequelizeError);

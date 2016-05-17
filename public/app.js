@@ -105,7 +105,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 			return this.status == 'Disabled' || this.ended;
 		});
 		this.__defineGetter__('disabled', function() {
-			return this.status == 'Disabled';
+			return !this.enabled;
 		});
 		this.__defineGetter__('first', function() {
 			return this.last_season == 0;
@@ -139,6 +139,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 		this.last_season = 0;
 		this.last_episode = 0;
 		this.favourite = false;
+		this.enabled = true;
 
 		this.loading = false;
 		this.image = '';
@@ -183,9 +184,12 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 		this.activate = function() {
 			if (this.status != 'Disabled') {
 				this.status = 'Disabled';
+				this.enabled = false;
 			}
-			else
+			else {
+				this.enabled = true;
 				this.update_status();
+			}
 			ShowQuery.user_show_update(this);
 			console.log(this);
 		};
@@ -210,14 +214,17 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 				this.image = data.image;
 				this.name = data.name;
 				this.show_status = data.status == 'Canceled/Ended' ? 'Ended' : data.status;
-
+				
+				if(data.hasOwnProperty("enabled"))
+					this.enabled = data.enabled;
+				
 				if (data.enabled === false && !(this.show_status == 'Ended' || this.show_status == 'Canceled'))
 					this.status = 'Disabled';
-				if (data.last_season)
+				if (data.hasOwnProperty("last_season"))
 					this.last_season = data.last_season;
-				if (data.last_episode)
+				if (data.hasOwnProperty("last_episode"))
 					this.last_episode = data.last_episode;
-				if (data.favourite)
+				if (data.hasOwnProperty("favourite"))
 					this.favourite = !!data.favourite;
 					
 				this.seasons = [];
@@ -244,6 +251,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 				if (this.status == 'Disabled') return;
 			}
 
+			this.status = '';
 			var nextep = this.getNext();
 			if (nextep) {
 				var now = new Date();
@@ -280,7 +288,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 				}
 			}
 
-			if (data && (data.enabled != null && !data.enabled) && !(this.status == 'Ended' || this.status == 'Canceled')) {
+			if (!this.enabled && !(this.status == 'Ended' || this.status == 'Canceled')) {
 				this.status = 'Disabled';
 			}
 		};
@@ -305,7 +313,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 			});
 		};
 		if (typeof id == 'object') {
-			this.id = id.id;
+			this.id = id.id || id.show_id;
 			this.update_status(id);
 		}
 		else
@@ -420,8 +428,11 @@ app.controller('GlobalController', [
 				else {
 					ShowQuery.user_add_show(id).
 					success(function(data, status) {
-						$scope.shows.push(new TVShow(data.show, name));
-						$scope.last_added_show = name;
+						if(data.status == "OK") {
+							$scope.shows.push(new TVShow(data.show, name));
+							$scope.last_added_show = name;
+						} else 
+							console.error(data.msg, data.err);
 					}).
 					error(function() {
 						alert("Something went wrong. Please try again");

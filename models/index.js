@@ -13,6 +13,7 @@ var sequelize = new Sequelize(config.databaseUrl, {
     },
     logging: false
 });
+
 var db = {};
 
 fs

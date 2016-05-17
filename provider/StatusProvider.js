@@ -80,8 +80,9 @@ exports.SimpleStatusProvider = class SimpleStatusProvider extends exports.Status
                     me.findShowUrl(window, window.$, show).then(function(res) {
                         window.close();
                         if(!res) {
-                            //console.log("No Show found", show.name);
-                            return reject(new Error("Show '"+show.name+"' not found for "+me.name));
+                            console.log("Show '"+show.name+"' not found for "+me.name);
+                            //return reject(new Error("Show '"+show.name+"' not found for "+me.name));
+                            return resolve();
                         }
                         me.cache[show.id] = { url: res };
                         resolve(res);

@@ -70,11 +70,19 @@ module.exports = function(config) {
         showProvider.get({id: req.params.id, type: "imdb"}, req.session.user, function(err, show) {
             if(err) return errorHandler(res, err);
             if(req.session.user) {
-                models.UserShow.create({
-                    user_id: req.session.user.id,
-                    show_id: show.id
-                }).then(function(userShow) {
-                    res.json({status: 'OK', show: show});
+                models.UserShow.findOrCreate({ 
+                    where: {
+                        user_id: req.session.user.id,
+                        show_id: show.id
+                    }, 
+                    paranoid: false
+                }).then(function(userShows, created) {
+                    var userShow = userShows[0];
+                    if(!created && userShow.deleted_at == null)
+                        return res.json({status: 'ERR', msg: 'Show is already in your list'});
+                    if(!created)
+                        userShow.restore();
+                    res.json({status: 'OK', show: userShow});
                 }, errorHandler.bind(this, res));
             } else {
                 res.json({status: 'OK', show: show});

@@ -26,24 +26,27 @@ module.exports = function(config, models) {
         if(type == "imdb") 
             idQuery = {imdb_id: id};
             
-        var userQuery = null;
-        if(user)
-            userQuery = {
-                model: models.User,
-                where: { id: user.id }
-            };
+        //var userQuery = null;
+        //if(user)
+        //    userQuery = {
+        //        model: models.User,
+        //        where: { id: user.id }
+        //    };
             
         models.Show.findOne({
             where: idQuery, 
             include: [
-                userQuery,
+                //userQuery,
                 {
                     model: models.Episode,
                     as: 'episodes'
                 }
             ]
         }).then(function(show) {
-            if(show) return callback(null, show);
+            if(show) {
+                show.delete
+                return callback(null, show);
+            }
 
             refresh(id, type, callback);
             
