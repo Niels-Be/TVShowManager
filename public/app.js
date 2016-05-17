@@ -387,6 +387,11 @@ app.controller('GlobalController', [
 			$scope.new_error = false;
 			if (!name || name == '') return;
 			$scope.search.searching = true;
+			
+			$scope.search.results = $scope.search.results.filter((elem) => {
+				return elem.name.toLowerCase().startsWith(name);
+			});
+			
 			if (timer) {
 				$timeout.cancel(timer);
 			}
@@ -394,7 +399,7 @@ app.controller('GlobalController', [
 				if (old_search == name)
 					$scope.search.open = true;
 				else {
-					$scope.search.results = [];
+					//$scope.search.results = [];
 					ShowQuery.search(name)
 						.success(function(data) {
 							//console.log("Seach open", data);
