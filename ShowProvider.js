@@ -44,7 +44,6 @@ module.exports = function(config, models) {
             ]
         }).then(function(show) {
             if(show) {
-                show.delete
                 return callback(null, show);
             }
 
