@@ -71,5 +71,6 @@ There should always be at leaset one Search and one Metadata Provider enabled.
 - Show updates should be queued and run in background
 - Archiv insted of disable
 - Refactor front end
-- Color from selected primary status provider
+- Color from selectable primary status provider
 - Netflix status provider
+- Amazon status provider

@@ -8,8 +8,9 @@ exports.StatusProvider = class StatusProvider {
     
     getUrl(show, season, episode) {
         var me = this;
-        return me.getShowUrl(show).then(function() {
-            return me.getEpisodeUrl(show, season, episode);
+        return me.getShowUrl(show).then(function(url) {
+            if(url)
+                return me.getEpisodeUrl(show, season, episode);
         });
     }
     //Arg: show: Show model
@@ -82,9 +83,10 @@ exports.SimpleStatusProvider = class SimpleStatusProvider extends exports.Status
                         if(!res) {
                             console.log("Show '"+show.name+"' not found for "+me.name);
                             //return reject(new Error("Show '"+show.name+"' not found for "+me.name));
+                            me.cache[show.id] = {};
                             return resolve();
                         }
-                        me.cache[show.id] = { url: res };
+                        me.cache[show.id] = { show_url: res };
                         resolve(res);
                     }, reject);
                     
@@ -96,8 +98,9 @@ exports.SimpleStatusProvider = class SimpleStatusProvider extends exports.Status
     getEpisodeUrl(show, season, episode) {
         var me = this;
         if(!me.cache[show.id]) {
-            return me.getShowUrl(show).then(function() { 
-                return me.getEpisodeUrl(show, season, episode);
+            return me.getShowUrl(show).then(function(url) { 
+                if(url)
+                    return me.getEpisodeUrl(show, season, episode);
             });
         }
         var showCache = me.cache[show.id];
@@ -107,7 +110,7 @@ exports.SimpleStatusProvider = class SimpleStatusProvider extends exports.Status
             
         return new Promise(function(resolve, reject) {
             jsdom.env(
-                me.buildEpisodeUrl(show, showCache.url, season, episode),
+                me.buildEpisodeUrl(show, showCache.show_url, season, episode),
                 ["http://code.jquery.com/jquery.min.js"],
                 function (err, window) {
                     if(err) return reject(err);
