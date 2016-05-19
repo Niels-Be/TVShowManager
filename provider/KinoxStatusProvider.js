@@ -115,7 +115,8 @@ module.exports = class KinoxStatusProvider extends SimpleStatusProvider {
         var me = this;
         if(!me.cache[show.id]) {
             return me.getShowUrl(show).then(function() { 
-                return me.getEpisodeUrl(show, season, episode);
+                if(me.cache[show.id].url)
+                    return me.getEpisodeUrl(show, season, episode);
             });
         }
         
