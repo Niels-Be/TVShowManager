@@ -76,8 +76,9 @@ module.exports = function(config) {
                         show_id: show.id
                     }, 
                     paranoid: false
-                }).then(function(userShows, created) {
-                    var userShow = userShows[0];
+                }).then(function() {
+                    var userShow = arguments[0][0], created = arguments[0][1]; //Workaround for strange arguments
+                    
                     if(!created && userShow.deleted_at == null)
                         return res.json({status: 'ERR', msg: 'Show is already in your list'});
                     if(!created)

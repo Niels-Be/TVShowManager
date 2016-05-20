@@ -9,7 +9,8 @@ var config    = require(path.join(__dirname, '..', 'config'));
 var sequelize = new Sequelize(config.databaseUrl, {
     define: { 
         underscored: true,
-        underscoredAll: true
+        underscoredAll: true,
+        charset: 'utf8'
     },
     logging: false
 });

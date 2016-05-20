@@ -114,21 +114,23 @@ module.exports = class KinoxStatusProvider extends SimpleStatusProvider {
     getEpisodeUrl(show, season, episode) {
         var me = this;
         if(!me.cache[show.id]) {
-            return me.getShowUrl(show).then(function() { 
-                if(me.cache[show.id].url)
+            return me.getShowUrl(show).then(function(url) { 
+                if(url)
                     return me.getEpisodeUrl(show, season, episode);
             });
         }
         
         return new Promise(function(resolve, reject) {
-            var match = /^.*\/(.*)\.html$/.exec(me.cache[show.id].url);
+            if(!me.cache[show.id].show_url) { console.log("Show "+show.name+" has no URL for kinox"); return resolve(false); }
+            
+            var match = /^.*\/(.*)\.html$/.exec(me.cache[show.id].show_url);
             if(!match) return reject(new Error("Corrupted Show Url"));
             
             var name = match[1];
             request("http://kinox.to/aGET/MirrorByEpisode/?Addr="+name+"&Season="+season+"&Episode="+episode, function(err, responde, body) {
                 if(err) return reject(err);
                 if(body.length > 0)
-                    return resolve(me.cache[show.id].url);
+                    return resolve(me.cache[show.id].show_url);
                 return resolve(false);
             });
         });
