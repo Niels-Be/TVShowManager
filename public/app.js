@@ -129,7 +129,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 		});
 		this.__defineGetter__('next_ep_date', function() {
 			var next = this.getNext();
-			return next ? (next.airdate == "0000-00-00" ? "TBA" : new Date(next.airdate).toLocaleDateString()) : '';
+			return next ? (next.airdate == "0000-00-00" ? "TBA" : getUTCDate(next.airdate).toLocaleDateString()) : '';
 		});
 		this.__defineGetter__('next_ep_status', function() {
 			var next = this.getNext();
@@ -255,7 +255,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 			var nextep = this.getNext();
 			if (nextep) {
 				var now = new Date();
-				var nextdate = new Date(nextep.airdate);
+				var nextdate = getUTCDate(nextep.airdate);
 				if (nextdate.getTime() < 0) {
 					this.status = 'Undetermined';
 				}
@@ -586,4 +586,10 @@ function pad(n, width, z) {
 	z = z || '0';
 	n = n + '';
 	return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+
+
+function getUTCDate(dateStr) {
+	var d = new Date(dateStr);
+	return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds());
 }
