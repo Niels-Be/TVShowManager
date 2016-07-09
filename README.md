@@ -1,6 +1,8 @@
 Tv Show Manager
 ===============
 
+**This Project is currently porting to Node.JS.** Please have a look at [node](https://github.com/WaeCo/TVShowManager/tree/node) branch.
+
 This is a nice and simple Web UI that allows you to keep track of your TV shows. 
 It is useful if you are watching multiple shows at the same time and cannot remember at which episode you stopped watching.
 Also, it shows you if a new episode is available or when the next comes online.
