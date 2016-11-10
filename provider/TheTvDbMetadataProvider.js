@@ -8,10 +8,13 @@ module.exports = function(options) {
         
         if(idType == "imdb") {
             request("http://thetvdb.com/api/GetSeriesByRemoteID.php?imdbid="+id, function(err, response, body) {
-                if (err || response.statusCode != 200) return callback(err || new Error("Show not found"));
+                if (err || response.statusCode != 200) return callback(err || new Error("IMDB Show not found"));
                 parseXML(body, {explicitArray: false}, function(err, data) {
                     if (err) return callback(err);
-                    doFetch(data.Data.Series.seriesid);
+                    if(!data.Data.Series)
+                        console.error(data.Data);
+                    else
+                        doFetch(data.Data.Series.seriesid);
                 });
             });
         } else
