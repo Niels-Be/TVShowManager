@@ -92,7 +92,8 @@ module.exports = class Movie4kStatusProvider extends SimpleStatusProvider {
     
 
     buildSearchUrl(show) { 
-        return "https://www.movie4k.to/movies.php?list=search&search="+encodeURI(show.name);
+        var name = Movie4kStatusProvider.escapeShowName(show.name);
+        return "https://www.movie4k.to/movies.php?list=search&search="+encodeURI(name);
     }
 
     findShowUrl(window, $, show) {
@@ -133,7 +134,7 @@ module.exports = class Movie4kStatusProvider extends SimpleStatusProvider {
     static escapeShowName(name) {
        return name.
         toLowerCase().
-        replace(/ ?\(\d+\)\s*$/, "").
+        replace(/\s*\(\w+\)\s*$/, "").
         replace(/ |\-/g, "_").
         replace(/\(|\)|\:|\.|\;|\,|\'\"\+|\#/g, "");
     }

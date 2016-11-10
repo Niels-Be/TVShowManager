@@ -89,8 +89,9 @@ module.exports = class KinoxStatusProvider extends SimpleStatusProvider {
     }
     
 
-    buildSearchUrl(show) { 
-        return "http://kinox.to/Search.html?q="+encodeURI(show.name);
+    buildSearchUrl(show) {
+        var name = KinoxStatusProvider.escapeShowName(show.name);
+        return "http://kinox.to/Search.html?q="+encodeURI(name);
     }
 
     findShowUrl(window, $, show) {
@@ -139,7 +140,7 @@ module.exports = class KinoxStatusProvider extends SimpleStatusProvider {
     static escapeShowName(name) {
        return name.
         toLowerCase().
-        replace(/ ?\(\d+\)\s*$/, "").
+        replace(/\s*\(\w+\)\s*$/, "").
         replace(/ |\-/g, "_").
         replace(/\(|\)|\:|\.|\;|\,|\'\"\+|\#/g, "");
     }
