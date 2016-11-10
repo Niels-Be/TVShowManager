@@ -63,7 +63,7 @@ models.sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
 }, SequelizeError)
 .then(function () { 
     var server = app.listen(process.env.PORT || 3000, process.env.IP || '0.0.0.0', function () {
-      console.log('Server listen on '+process.env.IP+':'+process.env.PORT);
+      console.log('Server listen on '+(process.env.IP||'*')+':'+(process.env.PORT||3000));
     });
     server.on('error', function(err) {
         console.warn("Server Error: "+err.stack ? err.stack : err);
@@ -72,4 +72,13 @@ models.sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
         console.warn("Client Error: "+err.stack ? err.stack : err);
         socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
     });
+
+    process.on('SIGTERM', () => {
+        console.log("Recived shutdown signal");
+        server.close(() => {
+            models.sequelize.close();
+            console.log("Server stopped");
+        });
+    });
 }, SequelizeError);
+
