@@ -54,7 +54,10 @@ function SequelizeError(err) {
     console.warn("Sequelize Main Error: "+err.stack ? err.stack : err);
 }
 
-models.sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
+models.sequelize.query('SET sql_mode = "STRICT_TRANS_TABLES"')
+.then(function(){
+    return models.sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
+}, SequelizeError) 
 .then(function(){
     return models.sequelize.sync({ force: false });
 }, SequelizeError)
