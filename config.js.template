@@ -21,7 +21,8 @@ module.exports = {
       },
       status: {
         Movie4kStatusProvider: true,
-        KinoxStatusProvider: true
+        KinoxStatusProvider: true,
+        NetflixStatusProvider: true
       }
     }
   },
