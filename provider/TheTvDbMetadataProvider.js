@@ -22,7 +22,7 @@ module.exports = function(options) {
             
         function doFetch(id) {
             request("http://thetvdb.com/api/"+options.apikey+"/series/"+id+"/all", function(err, response, body) {
-                if (err || response.statusCode != 200) return callback(err || new Error("Show not found"));
+                if (err || response.statusCode != 200) return callback(err || new Error("Show not found on TheTvDb"));
                 parseXML(body, {explicitArray: false}, function(err, data) {
                     if (err) return callback(err);
                     data.Series = data.Data.Series;

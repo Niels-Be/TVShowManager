@@ -1,12 +1,12 @@
 const express = require("express");
-const cookieParser = require('cookie-parser')
-const session = require("express-session")
+const cookieParser = require('cookie-parser');
+const session = require("express-session");
 const bodyParser = require('body-parser');
 
 const show = require("./show");
 const user = require("./user");
 const config = require("./config");
-const models = require("./models")
+const models = require("./models");
 
 var app = express();
 var api = express.Router();
@@ -54,17 +54,22 @@ function SequelizeError(err) {
     console.warn("Sequelize Main Error: "+err.stack ? err.stack : err);
 }
 
-models.sequelize.query('SET sql_mode = "STRICT_TRANS_TABLES"')
-.then(function(){
-    return models.sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
-}, SequelizeError) 
-.then(function(){
-    return models.sequelize.sync({ force: false });
-}, SequelizeError)
-.then(function(){
-    return models.sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
-}, SequelizeError)
-.then(function () { 
+var initProm;
+if(models.sequelize.getDialect() == "mysql") {
+    initProm = models.sequelize.query('SET sql_mode = "STRICT_TRANS_TABLES"')
+    .then(function(){
+        return models.sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
+    }, SequelizeError) 
+    .then(function(){
+        return models.sequelize.sync({ force: false });
+    }, SequelizeError)
+    .then(function(){
+        return models.sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
+    }, SequelizeError);
+} else {
+    initProm = models.sequelize.sync({ force: false });
+}
+initProm.then(function () { 
     var server = app.listen(process.env.PORT || 3000, process.env.IP || '0.0.0.0', function () {
       console.log('Server listen on '+(process.env.IP||'*')+':'+(process.env.PORT||3000));
     });

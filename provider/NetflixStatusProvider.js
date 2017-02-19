@@ -18,7 +18,7 @@ module.exports = class NetflixStatusProvider extends StatusProvider {
         return new Promise((resolve, reject) => {
             if (me.sessionJar) return resolve(me.sessionJar);
             var j = request.jar();
-            reqeust({
+            request({
                 url: "http://unogs.com/",
                 jar: j
             }, (err) => {
@@ -46,9 +46,10 @@ module.exports = class NetflixStatusProvider extends StatusProvider {
                     url: "http://unogs.com/cgi-bin/nf.cgi?u=" + session + urlQuery,
                     jar: jar,
                     json: true,
-                    //headers: {
-                    //    'Referer': "http://unogs.com/?q=" + encodeURI(show.name) + "&st=bs"
-                    //}
+                    headers: {
+                        'Referer': "http://unogs.com/?q=" + encodeURI(show.name) + "&st=bs",
+                        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/55.0.2883.87 Chrome/55.0.2883.87 Safari/537.36'
+                    }
                 }, (err, response, body) => {
                     if (err) return reject(err);
                     resolve(body, response);
@@ -69,7 +70,11 @@ module.exports = class NetflixStatusProvider extends StatusProvider {
             var res = body.ITEMS.filter((e) => {
                 return e[6] == "series";
             })[0];
-            return {
+            if(!res) {
+                console.log("Show '"+show.name+"' not found for "+me.name);
+                return false;
+            }
+            me.cache[show.id] = {
                 id: res[0],
                 name: res[1],
                 img: res[2],
@@ -77,9 +82,7 @@ module.exports = class NetflixStatusProvider extends StatusProvider {
                 relevance: res[5],
                 year: res[7]
             };
-        }).then((resShow) => {
-            me.cache[show.id] = resShow;
-            return "https://www.netflix.com/title/" + resShow.id;
+            return "https://www.netflix.com/title/" + me.cache[show.id].id;
         });
     }
         //Arg: show: Show model
@@ -96,9 +99,9 @@ module.exports = class NetflixStatusProvider extends StatusProvider {
         return this.doRequest(show, "&t=episodes&q="+me.cache[show.id].id).then((body) => {
             var seas = body.RESULTS.filter((e)=>{return e.seasnum==season;})[0];
             if(!seas) return false;
-            var eps = seas.episodes.filter((e)=>{return e[2]==episode;})[0];
+            var eps = seas.episodes.filter((e)=>{return e.episode[2]==episode;})[0];
             if(!eps) return false;
-            return "https://www.netflix.com/watch/" + eps[0];
+            return "https://www.netflix.com/watch/" + eps.episode[0];
         });
     }
 
