@@ -47,7 +47,7 @@ module.exports = function(options) {
                             season: ep.SeasonNumber, 
                             episode: ep.EpisodeNumber,
                             title: ep.EpisodeName ? ep.EpisodeName : 'TBA',
-                            airdate: ep.FirstAired ? ep.FirstAired : '0000-00-00'
+                            airdate: ep.FirstAired ? ep.FirstAired : null
                         });
                     }
                     callback(null, show);

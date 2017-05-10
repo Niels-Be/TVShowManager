@@ -1,5 +1,6 @@
 'use strict';
 var jsdom = require("jsdom");
+var request = require("request");
 
 exports.StatusProvider = class StatusProvider {
     constructor(config) {
@@ -73,25 +74,42 @@ exports.SimpleStatusProvider = class SimpleStatusProvider extends exports.Status
         return new Promise(function(resolve, reject) {
             if(me.cache[show.id])
                 return resolve(me.cache[show.id].show_url);
-            jsdom.env(
-                me.buildSearchUrl(show),
-                ["http://code.jquery.com/jquery.min.js"],
-                function (err, window) {
-                    if(err) return reject(err);
-                    me.findShowUrl(window, window.$, show).then(function(res) {
-                        window.close();
-                        if(!res) {
-                            console.log("Show '"+show.name+"' not found for "+me.name);
-                            //return reject(new Error("Show '"+show.name+"' not found for "+me.name));
-                            me.cache[show.id] = {};
-                            return resolve();
-                        }
-                        me.cache[show.id] = { show_url: res };
-                        resolve(res);
-                    }, reject);
-                    
+            request({
+              url: me.buildSearchUrl(show), 
+              timeout: 10000
+            }, function(err, response, body) {
+              if(err) {
+                if(err.code == "ETIMEDOUT") {
+                  console.log("Request to "+ me.buildSearchUrl(show) +" timed out");
+                  return resolve();
                 }
-            );
+                return reject(err);
+              }
+              resolve(body);
+            });
+        }).then(function(htmlBody) {
+            if(!htmlBody) return;
+            return new Promise(function(resolve, reject) {
+                jsdom.env(
+                    htmlBody,
+                    ["http://code.jquery.com/jquery.min.js"],
+                    function (err, window) {
+                        if(err) return reject(err);
+                        me.findShowUrl(window, window.$, show).then(function(res) {
+                            window.close();
+                            if(!res) {
+                                console.log("Show '"+show.name+"' not found for "+me.name);
+                                //return reject(new Error("Show '"+show.name+"' not found for "+me.name));
+                                me.cache[show.id] = {};
+                                return resolve();
+                            }
+                            me.cache[show.id] = { show_url: res };
+                            resolve(res);
+                        }, reject);
+                        
+                    }
+                );
+            });
         });
     }
     
@@ -109,18 +127,35 @@ exports.SimpleStatusProvider = class SimpleStatusProvider extends exports.Status
             return me.findEpisodeUrl(showCache.page, showCache.page.$, show, season, episode);
             
         return new Promise(function(resolve, reject) {
-            jsdom.env(
-                me.buildEpisodeUrl(show, showCache.show_url, season, episode),
-                ["http://code.jquery.com/jquery.min.js"],
-                function (err, window) {
-                    if(err) return reject(err);
-                    if(!me.disableEpisodePageCache) {
-                        showCache.page = window;
-                        showCache.updated_at = new Date();
-                    }
-                    resolve(me.findEpisodeUrl(window, window.$, show, season, episode));
+            request({
+              url: me.buildEpisodeUrl(show, showCache.show_url, season, episode),
+              timeout: 10000
+            }, function(err, response, body) {
+              if(err) {
+                if(err.code == "ETIMEDOUT") {
+                  console.log("Request to "+ me.buildEpisodeUrl(show, showCache.show_url, season, episode) +" timed out");
+                  return resolve();
                 }
-            );
+                return reject(err);
+              }
+              resolve(body);
+            });
+        }).then(function(htmlBody) {
+            if(!htmlBody) return;
+            return new Promise(function(resolve, reject) {
+                jsdom.env(
+                    htmlBody,
+                    ["http://code.jquery.com/jquery.min.js"],
+                    function (err, window) {
+                        if(err) return reject(err);
+                        if(!me.disableEpisodePageCache) {
+                            showCache.page = window;
+                            showCache.updated_at = new Date();
+                        }
+                        resolve(me.findEpisodeUrl(window, window.$, show, season, episode));
+                    }
+                );
+            });
         });    
     }
     
