@@ -4,7 +4,7 @@ module.exports = function(sequelize, DataTypes) {
         season: {type: DataTypes.INTEGER, allowNull: false },
         episode: {type: DataTypes.INTEGER, allowNull: false },
         title: {type: DataTypes.STRING, allowNull: false },
-        airdate: {type: DataTypes.DATEONLY, allowNull: false }
+        airdate: {type: DataTypes.DATEONLY, allowNull: true }
     }, {
         classMethods: {
             associate: function(models) {

@@ -129,7 +129,7 @@ app.factory('TVShow', ['ShowQuery', '$timeout', function(ShowQuery, $timeout) {
 		});
 		this.__defineGetter__('next_ep_date', function() {
 			var next = this.getNext();
-			return next ? (next.airdate == "0000-00-00" ? "TBA" : getUTCDate(next.airdate).toLocaleDateString()) : '';
+			return next ? ((!next.airdate || next.airdate == "0000-00-00") ? "TBA" : getUTCDate(next.airdate).toLocaleDateString()) : '';
 		});
 		this.__defineGetter__('next_ep_status', function() {
 			var next = this.getNext();
