@@ -1,0 +1,12 @@
+tvshowmanager:
+    image: node:latest
+    container_name: tvshowmanager
+    environment:
+      PORT: 3000
+    restart: always
+    ports:
+     - "127.0.0.1:10005:3000"
+    volumes:
+     - ".:/app"
+    working_dir: /app
+    command: "npm start"
